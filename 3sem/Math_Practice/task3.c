@@ -4,196 +4,86 @@
 #include <math.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <errno.h>
 
 #define ull unsigned long long int
 #define ll long long int
 
+double MACHINE_EPS = -1;//required to calculate
+
+#define plus(x, y, z) __builtin_add_overflow(x, y, z)
+#define mult(x, y, z) __builtin_mul_overflow(x, y, z)
+#define sub(x,y,z) __builtin_sub_overflow(x, y, z)
+
 enum status_code
 {
-    OK = 0,
+    OK,
     INVALID_PARAMETER,
-    OVERFLOW,
+    MY_OVERFLOW,
     DIVISION_BY_ZERO,
     UNKNOWN_ERROR,
-    RESERVED
+    RESERVED,
 };
 
-static const char* input_errors[] =
+enum status_code str_to_int(char** in, int* out)
 {
-    "ERROR: Wrong count of parameters\n",
-    "ERROR: Unknown flag\n",
-    "ERROR: Unknown input\n"
-};
+    errno = 0;
+    char* endptr = NULL;
+    *out = strtol(*in, &endptr, 10);
+    if(errno == ERANGE)
+        return MY_OVERFLOW;
 
-static const char* function_base_errors[] =
-{
-    "OK\n",
-    "ERROR: Invalid parameter\n",
-    "ERROR: Overflow\n",
-    "ERROR: Division by zero\n",
-    "ERROR: Unknown\n",
-    "ERROR: Specific for function"
-};
-
-status_code str_to_int(char* str, int* result)
-{
-    if (str == NULL)
-    {
-        *result = 0;
-        return INVALID_PARAMETER;
-    }
-    if (str == "-" || str == "+")
-    {
-        *result = 0;
-        return INVALID_PARAMETER;
-    }
-
-    int count = strlen(str);
-    //check if is number
-    bool check_first = (isdigit(str[0]) || str[0] == '-' || str[0] == '+');
-    for (int i = 0; i < count; i++)
-    {
-        if (!check_first || (i != 0 && !isdigit(str[i])))
-        {
-            *result = 0;
-            return INVALID_PARAMETER;
-        }
-    }
-
-    //-[INT_MAX;INT_MAX]
-    *result = 0;
-    int digits = 0;
-    bool is_counting_zeros = false;
-    int multiplier = 1;
-
-    if (str[0] == '-')
-    {
-        multiplier = -1;
-    }
-    for (int i = 0; i < count; i++)
-    {
-        if(i == 0 && (str[i] == '+' || str[i] == '-'))
-        {
-            continue;
-        }
-        if (str[i] != '0')
-        {
-            is_counting_zeros = true;
-        }
-        if (is_counting_zeros)
-        {
-            digits++;
-            if (digits == 1)
-            {
-                *result = multiplier * (str[i] - '0');
-            }
-            else
-            {
-                if (digits < 10)
-                {
-                    *result = *result * 10 + (multiplier) * (str[i] - '0');
-                }
-
-                if (digits == 10)
-                {
-                    if (abs(*result) > INT_MAX / 10)
-                    {
-                        *result = 0;
-                        return OVERFLOW;
-                    }
-                    else if (abs(*result) == INT_MAX / 10)
-                    {
-                        //INT_MAX mod 10 == 7
-                        //INT_MIN mod 10 == 8
-                        if ( ((str[i] - '0') <= 7 && multiplier == 1) || ((str[i] - '0') <= 8 && multiplier == -1) )
-                        {
-                            *result = *result * 10 + (multiplier) * (str[i] - '0');
-                        }
-                        else
-                        {
-                            *result = 0;
-                            return OVERFLOW;
-                        }
-                    }
-                    else
-                    {
-                        *result = *result * 10 + (multiplier) * (str[i] - '0');
-                    }
-                }
-
-                if (digits > 10)
-                {
-                    *result = 0;
-                    return OVERFLOW;
-                }
-            }
-        }
-
-    }
-    if (digits == 0)
-    {
-        *result = 0;
-    }
-    return OK;
-}
-
-status_code str_to_double(char* str, double* result)
-{
-    if (str == NULL)
-    {
-        *result = 0;
-        return INVALID_PARAMETER;
-    }
-    int sdvig = 0;
-    int dot_count = 0;
-
-    if (str == "-" || str == "+")
-    {
-        *result = 0;
-        return INVALID_PARAMETER;
-    }
-    if(str[0] == '-' || str[0] == '+')
-    {
-        sdvig = 1;
-    }
-
-    for (int i = sdvig; i < strlen(str); i++)
-    {
-        if(i == sdvig || i == (strlen(str) - 1))
-        {
-            if (!isdigit(str[i]))
-                return INVALID_PARAMETER;
-        }
-        else{
-            if (!isdigit(str[i]) && str[i] != '.')
-                return INVALID_PARAMETER;
-            if(str[i] == '.')
-                dot_count++;
-        }
-    }
-    if (dot_count > 1)
-        return INVALID_PARAMETER;
-    else
-        *result = atof(str);
-    return OK;
-}
-
-//----------------------------------------------------------------------------
-
-static double EPS = 1e-7;
-
-status_code function_m(int n1, int n2, bool* result)
-{
-    if (n1 == 0 || n2 == 0)
+    if (errno != 0 && *out == 0)
+        return UNKNOWN_ERROR;
+    
+    if(*in == endptr)
         return INVALID_PARAMETER;
     
-    *result = (n1 % n2) == 0;
+    if(*endptr != '\0')
+        return INVALID_PARAMETER;
+
     return OK;
 }
 
-status_code function_t(double num1, double num2, double num3)
+enum status_code str_to_d(char** in, double* out)
 {
+    errno = 0;
+    char* endptr = NULL;
+    *out = strtod(*in, &endptr);
+    if(errno == ERANGE)
+        return MY_OVERFLOW;
+
+    if (errno != 0 && *out == 0)
+        return UNKNOWN_ERROR;
     
+    if(*in == endptr)
+        return INVALID_PARAMETER;
+    
+    if(*endptr != '\0')
+        return INVALID_PARAMETER;
+    
+    return OK;
+
+}
+
+bool equal_d(double a, double b, double eps)
+{
+    return fabsl(a-b) < eps;
+}
+
+bool lessequal_d(double a, double b, double eps)
+{
+    return equal_d(a,b,eps) || a < b;
+}
+
+double min(double a, double b)
+{
+    return a < b ? a : b;
+}
+
+double max(double a, double b)
+{
+    return a > b ? a : b;
 }
 
 bool equal_arrays(double a[], double b[], int count)
@@ -206,10 +96,26 @@ bool equal_arrays(double a[], double b[], int count)
     return true;
 }
 
-bool equal(double a, double b)
+static const char* usage = "Usage: <epsilon>\n";
+
+static const char* input_errors[] =
 {
-    return fabs(a-b) < EPS;
-}
+    "ERROR: Wrong count of parameters\n",
+    "ERROR: Unknown flag\n",
+    "ERROR: Unknown input\n"
+};
+
+static const char* function_base_errors[] =
+{
+    "OK\n",
+    "ERROR: Invalid parameter\n",
+    "ERROR: OVERFLOW\n",
+    "ERROR: Division by zero\n",
+    "ERROR: Unknown\n",
+    "ERROR: Specific for function...\n"
+};
+
+//----------------------------------------------------------------------------
 
 int swap(int *a, int i, int j)
 {
@@ -221,6 +127,7 @@ int swap(int *a, int i, int j)
     a[j] = s;
     return 0;
 }
+
 bool next_generate(int *a, int n)
 {
     if(a == NULL)
@@ -243,40 +150,78 @@ bool next_generate(int *a, int n)
     return true;
 }
 
+//---------------------------------------------------------------------------
+static double EPS = 1e-7;
+
+enum status_code function_m(int n1, int n2, bool* result)
+{
+    if (n1 == 0 || n2 == 0)
+        return INVALID_PARAMETER;
+    
+    *result = (n1 % n2) == 0;
+    return OK;
+}
+
+enum status_code function_t(double a, double b, double c, double eps, bool* result)
+{
+    if (eps <= 0)
+        return INVALID_PARAMETER;
+    double mn = 0, middle = 0, mx = 0;
+    mn = min(a,min(b,c));
+    mx = max(a,max(b,c));
+    middle = a + b + c - mn - mx;
+
+    if(lessequal_d(mn, 0, eps))
+        return INVALID_PARAMETER;
+    
+    if(equal_d(mn * mn + middle * middle, mx * mx, eps))
+    {
+        *result = true;
+        return OK;
+    }
+    else
+    {
+        *result = false;
+        return OK;
+    }
+}
 
 //if result_count == 1
 //x1 == x2 == x
 //if result_count == 2
 //x1, x2
 //else nothing
-status_code solve_quad(double koefs[], int count, int* root_count, double* x1, double* x2)
+enum status_code solve_quad(double koefs[], int count, double EPS, int* root_count, double* x1, double* x2)
 {
+    if (EPS <= 0)
+        return INVALID_PARAMETER;
+
     double D = koefs[1] * koefs[1] - 4 * koefs[0] * koefs[2];
-    if(equal(koefs[0], D))
+    if(equal_d(koefs[0], 0, EPS))
     {
         *root_count = -1;
         return OK;
     }
-    if (equal(D,0))
+    if (equal_d(D,0, EPS))
     {
         *root_count = 1;
-        *x1 = -koefs[1] / (4 * koefs[0] * koefs[2]);
+        *x1 = -koefs[1] / (2 * koefs[0]);
         *x2 = *x1;
     }
     else if (D > 0)
     {
         *root_count = 2;
-        *x1 = (-koefs[1] + sqrt(D)) / (4 * koefs[0] * koefs[2]);
-        *x2 = (-koefs[1] - sqrt(D)) / (4 * koefs[0] * koefs[2]);
+        *x1 = (-koefs[1] + sqrt(D)) / (2 * koefs[0]);
+        *x2 = (-koefs[1] - sqrt(D)) / (2 * koefs[0]);
     }
     else
     {
-        root_count = 0;
+        *root_count = 0;
     }
     return OK;
 }
 
-status_code copy_to(double* from, double* to, int count)
+enum status_code copy_to(double* from, double* to, int count)
 {
     if(from == NULL || to == NULL)
         return INVALID_PARAMETER;
@@ -287,67 +232,79 @@ status_code copy_to(double* from, double* to, int count)
     return OK;
 }
 
-status_code change_indexes(double* to_change, double* indexes, int count, double* result)
+enum status_code change_indexes(double* to_change, int* indexes, int count, double* result)
 {
+    double res[3] = {0};
     if (to_change == NULL || indexes == NULL)
         return INVALID_PARAMETER;
     for(int i = 0; i < count; i++)
     {
-        result[i] = to_change[indexes[i]];
+        res[i] = to_change[indexes[i]];
+    }
+    for(int i = 0; i < count; i++)
+    {
+        result[i] = res[i];
     }
     return OK;
 }
 
-status_code funciton_q(double num1, double num2, double num3)
+enum status_code funciton_q(double num1, double num2, double num3, double EPS)
 {
+    if (EPS <= 0)
+        return INVALID_PARAMETER;
+
     int count = 6;
     int list_len = 3;
+    double readonly_list[3] = {num1, num2, num3};
 
     int indexes_list[] = {0,1,2};
-    double list[] = {0};
-    double last_list[] = {0};
+    double list[3] = {num1, num2, num3};
+    double last_list[6][3] = {0};
 
     int root_count = 0;
     double x1 = 0, x2 = 0;
 
+    int unique_arrays = 0;
     for(int i = 0; i < 6; i++)
     {
-        if(i == 0) 
-        {
-            list = {num1, num2, num3};
-        }
-        else
+        if(i != 0)
         {
             next_generate(indexes_list, 3);
-            change_indexes(list, indexes_list, 3, list);
+            change_indexes(readonly_list, indexes_list, 3, list);
         }
-        if (!equal_arrays(list, last_list, 3))
+        bool is_unique = true;
+        for(int i = 0; i < unique_arrays; i++)
         {
-            status_code code = solve_quad(list, 3, &root_count, &x1, &x2);
+            if(equal_arrays(list, last_list[i], 3))
+                is_unique = false;
+        }
+        if (is_unique)
+        {
+            unique_arrays++;
+            copy_to(list, last_list[unique_arrays - 1], 3);
+            enum status_code code = solve_quad(list, 3, EPS, &root_count, &x1, &x2);
             if (code == OK)
             {
                 if (root_count == -1)  
-                    printf("It's not a quadratic equation with a = %lf, b = %lf, c = %lf", list[0], list[1], list[2]);
+                    printf("It's not a quadratic equation with a = %.3lf, b = %.3lf, c = %.3lf\n", list[0], list[1], list[2]);
                 if (root_count == 0)
-                    printf("There are no real roots for equation with a = %lf, b = %lf, c = %lf", list[0], list[1], list[2]);
+                    printf("There are no real roots for equation with a = %.3lf, b = %.3lf, c = %.3lf\n", list[0], list[1], list[2]);
                 if (root_count == 1)
-                    printf("There is one root: x = %lf for equation with a = %lf, b = %lf, c = %lf", x1, list[0], list[1], list[2]);
+                    printf("There is one root: x = %.3lf for equation with a = %.3lf, b = %.3lf, c = %.3lf\n", x1, list[0], list[1], list[2]);
                 if (root_count == 2)
-                    printf("There are two roots: x1 = %lf, x2 = %lf for equation with a = %lf, b = %lf, c = %lf", x1, x2, list[0], list[1], list[2]);
+                    printf("There are two roots: x1 = %.3lf, x2 = %.3lf for equation with a = %.3lf, b = %.3lf, c = %.3lf\n", x1, x2, list[0], list[1], list[2]);
             }
             else
                 return code;
-
-
         }
-        copy_to(list, last_list);
     }
     return OK;
     
 }
 
-status_code solve_flag(int argc, char** argv)
+enum status_code solve_flag(int argc, char** argv)
 {
+    enum status_code code = OK;
     //-q eps num1 num2 num3
     //-m int1 int2
     //-t eps num1 num2 num3
@@ -357,70 +314,120 @@ status_code solve_flag(int argc, char** argv)
     switch(argv[1][1])
     {
         case 'q':
+        {
             if (argc != 6)
                 return INVALID_PARAMETER;
-
-            status_code code = str_to_double(argv[2], &EPS) & str_to_double(argv[3], &d1) &
-                str_to_double(argv[4], &d2) & str_to_double(argv[4], &d3);
-
+            //------------
+            code = str_to_d(&argv[2], &EPS);
             if(code != OK)
                 return code;
-
-            code = funciton_q(d1, d2, d3);
-
+            //------------
+            code = str_to_d(&argv[3], &d1);
             if(code != OK)
                 return code;
+            //------------
+            code = str_to_d(&argv[4], &d2);
+            if(code != OK)
+                return code;
+            //------------
+            code = str_to_d(&argv[5], &d3);
+            if(code != OK)
+                return code;
+            //------------
+            code = funciton_q(d1, d2, d3, EPS);
+            if(code != OK)
+                return code;
+            //------------
             break;
+        }
         case 'm':
+        {
             if (argc != 4)
                 return INVALID_PARAMETER;
-
-            status_code code = str_to_int(argv[2], &n1) & str_to_int(argv[3], &n1);
-
+            //-------------
+            code = str_to_int(&argv[2], &n1);
             if(code != OK)
                 return code;
-
+            //-------------
+            code = str_to_int(&argv[3], &n2);
+            if(code != OK)
+                return code;
+            //-------------
             bool multiple = true;
             code = function_m(n1, n2, &multiple);
 
+            if(code != OK)
+                return code;
+            
             if(multiple)
                 printf("First number is a multiple for the second");
             else
                 printf("First number is not multiple for the second");
         
             break;
+        }
         case 't':
+        {
+            bool result = true;
             if (argc != 6)
                 return INVALID_PARAMETER;
             
-            status_code code = str_to_double(argv[2], &EPS) & str_to_double(argv[3], &d1) &
-                str_to_double(argv[4], &d2) & str_to_double(argv[4], &d3);
-            
+            //------------
+            code = str_to_d(&argv[2], &EPS);
+            if(code != OK)
+                return code;
+            //------------
+            code = str_to_d(&argv[3], &d1);
+            if(code != OK)
+                return code;
+            //------------
+            code = str_to_d(&argv[4], &d2);
+            if(code != OK)
+                return code;
+            //------------
+            code = str_to_d(&argv[5], &d3);
             if(code != OK)
                 return code;
             
+            code = function_t(d1,d2,d3,EPS,&result);
 
+            if(code != OK)
+                return code;
 
+            if(result)
+                printf("Yes, %lf, %lf and %lf can form a right triangle\n", d1,d2,d3);
+            else
+                printf("No, %lf, %lf and %lf can't form a right triangle\n", d1,d2,d3);
+    
             break;
+        }
     }
-
+    
+    return code;
 }
 
 int main(int argc, char** argv)
 {
-    printf("%d", n);
+    // argc = 6;
+    // argv[1] = "-q";
+    // argv[2] = "1e-5";
+    // argv[3] = "3";
+    // argv[4] = "4";
+    // argv[5] = "5";
     if (argc < 4)
     {
         printf(input_errors[1]);
         return 1;
     }
 
-
-
     if (strlen(argv[1]) == 2  && (argv[1][0] == '-' || argv[1][0] == '/'))
     {
-        if(solve_flag(argc,argv) != OK)
+        enum status_code st = solve_flag(argc,argv);
+        if(st != OK)
+        {
+            printf("%s", function_base_errors[st]);
             return 1;
+        }
     }
     else
     {

@@ -22,7 +22,6 @@ enum status_code
     RESERVED,
 };
 
-
 enum status_code str_to_int(char** in, int* out)
 {
     errno = 0;
@@ -57,13 +56,12 @@ enum status_code str_to_d(char** in, double* out)
     if(*in == endptr)
         return INVALID_PARAMETER;
     
-    if(!*endptr)
+    if(*endptr != '\0')
         return INVALID_PARAMETER;
     
     return OK;
 
 }
-
 
 static const char* usage = "Usage:\n -<flag> <number> or\n /<flag> <number>\n flags: -h, -p, -s, -e, -a, -f\n\n";
 
@@ -84,13 +82,13 @@ static const char* function_base_errors[] =
     "ERROR: Specific for function...\n"
 };
 
-enum status_code bin_pow(int a, int n, int* res) {
-    if ((n == 0 && a == 0) || (n < 0) || (a == INT_MIN))
+enum status_code bin_pow(ll a, ll n, ll* res) {
+    if ((n == 0 && a == 0) || (n < 0) || (a == LLONG_MIN))
     {
         return INVALID_PARAMETER;
     }
 
-    int multiplier = 1;
+    ll multiplier = 1;
     bool overflow = false;
 
     //Работа с модулем
@@ -146,12 +144,12 @@ enum status_code function_p(int n, bool* result)
         *result = true;
         return OK;
     }
-    if (n & 1 == 0) 
+    if (n % 2 == 0) 
     {
         *result = false;
         return OK;
     }
-    for (ll i = 3; i * i < n; i += 2) {
+    for (ll i = 3; i * i <= n; i += 2) {
         if (n % i == 0)
         {
             *result = false;
@@ -222,7 +220,7 @@ enum status_code function_a(int n, int* result)
 }
 
 //table of powers
-enum status_code function_e(int n)
+enum status_code function_e(ll n)
 {
     //no need to check OVERFLOWSS
     if (n < 1 || n > 10)
@@ -234,9 +232,9 @@ enum status_code function_e(int n)
     {
         for (int j = 1; j <= 10; j++)
         {
-            int res = 0;
+            ll res = 0;
             bin_pow(i, j, &res);
-            printf("|\t\t%d\t\t|\t\t%d\t\t|\t\t%d\t\t\n", i, j, res);
+            printf("|\t\t%d\t\t|\t\t%d\t\t|\t\t%lld\t\t\n", i, j, res);
         }
     }
     return OK;
@@ -259,7 +257,6 @@ enum status_code function_f(int a, int* res)
     }
     return OK;
 }
-
 
 enum status_code solve_flag(char flag, int number)
 {
@@ -392,37 +389,29 @@ int main(int argc, char** argv)
     if (argc != 3)
     {
         printf(input_errors[0]);
-        getchar();
         return 1;
     }
 
     int number = 0;
     
-    enum status_code is_converted = str_to_int(&argv[2], &number);  
-    switch (is_converted)
+    enum status_code code = str_to_int(&argv[2], &number);  
+    if(code != OK)
     {
-        case OK:
-            break;
-        default:
-            printf("%s", function_base_errors[is_converted]);
-            getchar();
-            return 1;
+        printf("%s", function_base_errors[code]);
+        return 1;
     }
 
     if (strlen(argv[1]) == 2 && (argv[1][0] == '-' || argv[1][0] == '/'))
     {
         if(solve_flag(argv[1][1], number) != OK)
         {
-            getchar();
             return 1;
         }
     }
     else
     {
         printf(input_errors[2]);
-        getchar();
         return 1;
     }
-    getchar();
     return 0;
 }

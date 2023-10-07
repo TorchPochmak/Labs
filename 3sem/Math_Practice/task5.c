@@ -222,9 +222,9 @@ int main(int argc, char** argv)
         printf("%s", function_base_errors[code]);
         return 1;
     }
-    if (EPS < 1e-8 || EPS > 1e-2)
+    if (EPS < 1e-8)
     {
-        printf("Incorrect epsilon. Must be in range [1e-8;1e-2]\n");
+        printf("Incorrect epsilon. Must be greater than 1e-8\n");
         return 1;
     }
     //------------

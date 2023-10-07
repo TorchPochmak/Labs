@@ -322,13 +322,7 @@ enum status_code solve_flag(int argc, char** argv)
             if(code != OK)
                 return code;
             //------------
-            code = str_to_d(&argv[3], &d1);
-            if(code != OK)
-                return code;
-            //------------
-            code = str_to_d(&argv[4], &d2);
-            if(code != OK)
-                return code;
+            
             //------------
             code = str_to_d(&argv[5], &d3);
             if(code != OK)

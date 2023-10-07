@@ -124,7 +124,7 @@ enum status_code bin_pow(ll a, ll n, ll* res) {
         n >>= 1;
     }
 
-    if (!MY_OVERFLOW)
+    if (!overflow)
     {
         *res = *res * multiplier;
         return OK;
@@ -337,7 +337,7 @@ int main(int argc, char** argv)
         c[i] = a[i] + num;
     }
     print_arr(c, arr_size2);
-    
+
     free(a);
     free(b);
     free(c);

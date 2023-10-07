@@ -123,7 +123,7 @@ enum status_code bin_pow(ll a, ll n, ll* res) {
         n >>= 1;
     }
 
-    if (!MY_OVERFLOW)
+    if (!overflow)
     {
         *res = *res * multiplier;
         return OK;
@@ -195,7 +195,6 @@ enum status_code solve(FILE* input, FILE* output)
 	
 	while (cur_ch != EOF)
 	{
-
         while (is_sep(cur_ch))
 		{
 			cur_ch = getc(input);
@@ -213,8 +212,16 @@ enum status_code solve(FILE* input, FILE* output)
         bool begin_null = true;
 
         ll number = 0;
+        bool is_num = false;
+        int minuses = 0;
+        while(cur_ch == '-')
+        {
+            minuses++;
+            cur_ch = getc(input);
+        }
         while((digit = get_digit(cur_ch)) != -1)
         {
+            is_num = true;
             base = digit + 1 > base ? digit + 1 : base;
 
             if(size == max_size - 1) 
@@ -237,13 +244,26 @@ enum status_code solve(FILE* input, FILE* output)
                 result[size - 1] = cur_ch;
                 size++;
             }
-
+            cur_ch = getc(input);
         }
-
-        code = convert_to_number(result, size, base, &number);
-        if(code != OK)
-            return code;
-        fprintf(output, "%s %d %lld\n", result, base, number);
+        if( (!is_sep(cur_ch) && cur_ch != EOF) || minuses > 1)
+        {
+            return INVALID_PARAMETER;
+        }
+        if(is_num && begin_null)s
+        {
+            fprintf(output, "0 1 0\n");
+        }
+        else{
+            result[size - 1] = '\0';
+            code = convert_to_number(result, size - 1, base, &number);
+            if(code != OK)
+                return code;
+            if(minuses == 1)
+                fprintf(output, "-%s %d -%lld\n", result, base, number);
+            else
+                fprintf(output, "%s %d %lld\n", result, base, number);
+        }
         free(result);
     }
 

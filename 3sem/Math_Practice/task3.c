@@ -86,17 +86,17 @@ double max(double a, double b)
     return a > b ? a : b;
 }
 
-bool equal_arrays(double a[], double b[], int count)
+bool equal_arrays(double a[], double b[], int count, double EPS)
 {
     for(int i = 0; i < count; i++)
     {
-        if(a[i] != b[i])
+        if(!equal_d(a[i],b[i], EPS))
             return false;
     }
     return true;
 }
 
-static const char* usage = "Usage: <epsilon>\n";
+static const char* usage = "Usage: -<flag> <epsilon>\n or /<flag> <epsilon>\n flags: -q, -m, -t\n";
 
 static const char* input_errors[] =
 {
@@ -158,7 +158,7 @@ enum status_code function_m(int n1, int n2, bool* result)
     if (n1 == 0 || n2 == 0)
         return INVALID_PARAMETER;
     
-    *result = (n1 % n2) == 0;
+    *result = (n2 % n1) == 0;
     return OK;
 }
 
@@ -173,7 +173,7 @@ enum status_code function_t(double a, double b, double c, double eps, bool* resu
 
     if(lessequal_d(mn, 0, eps))
         return INVALID_PARAMETER;
-    
+
     if(equal_d(mn * mn + middle * middle, mx * mx, eps))
     {
         *result = true;
@@ -186,11 +186,6 @@ enum status_code function_t(double a, double b, double c, double eps, bool* resu
     }
 }
 
-//if result_count == 1
-//x1 == x2 == x
-//if result_count == 2
-//x1, x2
-//else nothing
 enum status_code solve_quad(double koefs[], int count, double EPS, int* root_count, double* x1, double* x2)
 {
     if (EPS <= 0)
@@ -275,7 +270,7 @@ enum status_code funciton_q(double num1, double num2, double num3, double EPS)
         bool is_unique = true;
         for(int i = 0; i < unique_arrays; i++)
         {
-            if(equal_arrays(list, last_list[i], 3))
+            if(equal_arrays(list, last_list[i], 3, EPS))
                 is_unique = false;
         }
         if (is_unique)
@@ -322,7 +317,13 @@ enum status_code solve_flag(int argc, char** argv)
             if(code != OK)
                 return code;
             //------------
-            
+            code = str_to_d(&argv[3], &d1);
+            if(code != OK)
+                return code;
+            //------------
+            code = str_to_d(&argv[4], &d2);
+            if(code != OK)
+                return code;
             //------------
             code = str_to_d(&argv[5], &d3);
             if(code != OK)
@@ -408,6 +409,7 @@ int main(int argc, char** argv)
     // argv[3] = "3";
     // argv[4] = "4";
     // argv[5] = "5";
+    printf("%s", usage);
     if (argc < 4)
     {
         printf(input_errors[1]);
@@ -428,7 +430,6 @@ int main(int argc, char** argv)
         printf(input_errors[2]);
         return 1;
     }
-
 
     return 0;
 }   

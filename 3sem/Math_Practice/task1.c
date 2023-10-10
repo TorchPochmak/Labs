@@ -129,7 +129,7 @@ enum status_code function_h(int input)
         return OK;
     }
     input = abs(input);
-    for (int i = input; i < 100; i += input)
+    for (int i = input; i <= 100; i += input)
     {
         printf("%d\n", i);
     }
@@ -139,6 +139,8 @@ enum status_code function_h(int input)
 //check prime
 enum status_code function_p(int n, bool* result)
 {
+    if (n <= 1)
+        return INVALID_PARAMETER;
     if (n == 2)
     {
         *result = true;

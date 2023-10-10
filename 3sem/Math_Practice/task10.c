@@ -5,69 +5,394 @@
 #include <limits.h>
 #include <math.h>
 #include <ctype.h>
-#include <wchar.h>
-#include <locale.h>
 
-int bin_search_closest(int* b, int size, int number, int* result)
+#define MAX_INPUT_SIZE 1024
+
+enum status_code
 {
-    if(size == 0 || b == NULL || *b == NULL)
+    OK,
+    INVALID_PARAMETER,
+    MY_OVERFLOW,
+    DIVISION_BY_ZERO,
+    UNKNOWN_ERROR,
+    ALLOC_ERROR,
+    RESERVED,
+};
+
+static const char* usage = "Usage: <input_file> <output_file>\n";
+
+static const char* input_errors[] =
+{
+    "ERROR: Wrong count of parameters\n",
+    "ERROR: Unknown flag\n",
+    "ERROR: Unknown input\n",
+    "ERROR: Cannot open file\n"
+};
+
+static const char* function_base_errors[] =
+{
+    "OK\n",
+    "ERROR: Invalid parameter\n",
+    "ERROR: OVERFLOW\n",
+    "ERROR: Division by zero\n",
+    "ERROR: Unknown\n",
+    "ERROR: Alloc Error\n",
+    "ERROR: Specific for function\n"
+};
+
+
+//if bad returns -1
+int get_digit(char c)
+{
+    if(isdigit(c))
+    {
+        return c - '0';
+    }
+        
+    if (isalpha(c))
+    {
+        return toupper(c) - 'A' + 10;
+    }
+    return -1;
+}
+
+
+bool is_sep(char c)
+{
+    return (c == '\n' || c == '\t' || c == ' ');
+}
+
+bool is_stop(char* input)
+{
+    if(input == NULL || strlen(input) != 4)
+        return false;
+    char* str = "Stop\0";
+    for(int i = 0; i < 5; i++)
+    {
+        if(str[i] != input[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool check_number_abs_and_base(char** number, int base)
+{
+    if (*number == NULL || number == NULL)
+        return false;
+    int len = strlen(*number);
+    int digit = 0;
+    for(int i = 0; i < len; i++)
+    {
+        if((digit = get_digit((*number)[i])) == -1)
+            return false;
+        if(digit >= base)
+            return false;
+    }
+    return true;
+}
+
+enum status_code abs_greater(char** num1, char** num2, char** result, int base)
+{
+    if (!(check_number_abs_and_base(num1, base) && check_number_abs_and_base(num2, base)))
         return INVALID_PARAMETER;
 
-    int mid;
-    int low = 0;
-    int high = size;
+    int len1 = strlen(*num1);
+    int len2 = strlen(*num2);
+    int digit1 = 0, digit2 = 0;
 
-    while (low < high) {
-        mid = low + (high - low) / 2;
-
-        if (number <= b[mid]) {
-            high = mid;
-        }
-        else 
-        {
-            low = mid + 1;
-        }
-    }
-    
-    if(low >= size) {
-       *result =  b[size - 1];
-       return OK;
-    }
-    if(low < 0 || low == 0)
+    if(len1 > len2)
     {
-        *result = b[0];
-        return OK;
+        *result = (char*) malloc(sizeof(char) * len1);
+        if(result == NULL)
+            return ALLOC_ERROR;
+        strcpy(*result, *num1);
     }
-    int right = b[low - 1];
-    int left = b[low];
-    if(abs(number - right) <= abs(number - left))
+    else if (len1 < len2)
     {
-        *result = right;
+        *result = (char*) malloc(sizeof(char) * len2);
+        if(result == NULL)
+            return ALLOC_ERROR;
+        strcpy(*result, *num2);
     }
     else
     {
-        *result = left;
+        *result = (char*) malloc(sizeof(char) * len2);
+        if(result == NULL)
+            return ALLOC_ERROR;
+        bool first_greater = true;
+        for (int i = 0; i < len1; i++)
+        {
+            digit1 = get_digit((*num1)[i]);
+            digit2 = get_digit((*num2)[i]);
+            if (digit1 < digit2)
+            {
+                first_greater = false;
+                break;
+            }
+        }
+        if (first_greater)
+        {
+            strcpy(*result, *num1);
+        }
+        else
+        {
+            strcpy(*result, *num2);
+        }
     }
     return OK;
 }
 
-int main() {
 
-    int arr[5] = {1,3,5,7,10};
-    int a;
-    bin_search_closest(arr, 5, 0, &a);
-    printf("%d\n", a);   
-    bin_search_closest(arr, 5, 6, &a);
-    printf("%d\n", a);  
-    bin_search_closest(arr, 5, 7, &a);
-    printf("%d\n", a);  
-    bin_search_closest(arr, 5, 11, &a);
-    printf("%d\n", a);  
-    bin_search_closest(arr, 5, 8, &a);
-    printf("%d\n", a);  
-    bin_search_closest(arr, 5, 4, &a);
-    printf("%d\n", a);  
-    bin_search_closest(arr, 5, 1, &a);
-    printf("%d\n", a);  
+enum status_code abs_number(char** num, char** result)
+{
+    char* number = *num;
+    char cur_ch = ' ';
+    if(number == NULL)
+        return INVALID_PARAMETER;
+
+    int max_size = 2;
+    int size = 1;
+
+    *result = (char*) calloc(size + 1, sizeof(char));
+    if(result == NULL)
+    {
+        return ALLOC_ERROR;
+    }
+    
+    int digit = 0;
+    bool begin_null = true;
+
+    bool is_num = false;
+    int minuses = 0;
+    
+    int iter = 0;
+    cur_ch = number[iter];
+    while(cur_ch == '-')
+    {
+        minuses++;
+        iter++;
+        cur_ch = number[iter];
+    }
+    //----------------
+    while((digit = get_digit(cur_ch)) != -1)
+    {
+        is_num = true;
+
+        if(size == max_size - 1) 
+        {
+            max_size *= 2;
+            char* copyto_str = (char*) realloc(*result, max_size);
+            if(copyto_str == NULL)
+            {
+                free(*result);
+                return ALLOC_ERROR;
+            }
+            *result = copyto_str;
+        }
+
+        if(cur_ch != '0')
+            begin_null = false;
+
+        if((cur_ch == '0' && !begin_null) || (cur_ch != '0')) 
+        {
+            (*result)[size - 1] = cur_ch;
+            size++;
+        }
+        iter++;
+        cur_ch = number[iter];
+    }
+    //----------------
+    if( (!is_sep(cur_ch) && cur_ch != EOF && cur_ch != '\0') || minuses > 1)
+    {
+        return INVALID_PARAMETER;
+    }
+    if(is_num && begin_null)
+    {
+        (*result)[0] = '0';
+        (*result)[1] = '\0';
+    }
+    else
+    {
+        (*result)[size - 1] = '\0';
+    }
+    return OK;
+}
+
+
+enum status_code str_to_int(char** in, int* out)
+{
+    errno = 0;
+    char* endptr = NULL;
+    *out = strtol(*in, &endptr, 10);
+    if(errno == ERANGE)
+        return MY_OVERFLOW;
+
+    if (errno != 0 && *out == 0)
+        return UNKNOWN_ERROR;
+    
+    if(*in == endptr)
+        return INVALID_PARAMETER;
+    
+    if(*endptr != '\0')
+        return INVALID_PARAMETER;
+
+    return OK;
+}
+
+enum status_code to_upper(char** s)
+{
+    if(s == NULL || *s == NULL)
+        return INVALID_PARAMETER;
+    int len = strlen(*s);
+    for(int i = 0; i < len; i++)
+    {
+        (*s)[i] = toupper((*s)[i]);
+    }
+    return OK;
+}
+
+enum status_code read_string(char** res)
+{
+    int max_size = 2;
+    int size = 1;
+    char ch = ' ';
+
+    char* result = (char*) calloc(size + 1, sizeof(char));
+    if (result == NULL)
+        return ALLOC_ERROR;
+
+    ch = getchar();
+
+
+    while (ch != '\0' && ch != '\n')
+    {
+        if (size == max_size - 1) 
+        {
+            max_size *= 2;
+            if (max_size > MAX_INPUT_SIZE)
+                return ALLOC_ERROR;
+            char* copyto_str = (char*) realloc(result, max_size);
+            if (copyto_str == NULL)
+            {
+                free(result);
+                return ALLOC_ERROR;
+            }
+            result = copyto_str;
+        }
+
+        result[size - 1] = ch;
+        size++;
+        result[size - 1] = '\0';
+        ch = getchar();
+    }
+    *res = result;
+    return OK;
+}
+
+int main(int argc, char** argv) 
+{
+    char* maximum;
+    enum status_code code = OK;
+    int base = 0;
+    char* buff = (char*) calloc(MAX_INPUT_SIZE, sizeof(char));
+    if(buff == NULL)
+    {
+        code = ALLOC_ERROR;
+        printf("%s", function_base_errors[code]);
+
+        return 1;
+    }
+    printf("Enter base of numbers: ");
+    //------------------------
+    code = read_string(&buff);
+    if(code != OK)
+    {
+        printf("%s", function_base_errors[code]);
+        free(buff);
+        return 1;
+    }
+    code = str_to_int(&buff, &base);
+    if(code != OK)
+    {
+        printf("%s", function_base_errors[code]);
+        free(buff);
+        return 1;
+    }
+    //-----------------------
+    char* current_number = NULL;
+    char* max_number = NULL;
+    //----------
+    if(base < 2 || base > 36)
+    {
+        printf("Incorrect base");
+        free(buff);
+        return 1;
+    }
+    if(is_stop(buff))
+    {
+        printf("No numbers enetered");
+        return 1;
+    }
+    while(true)
+    {
+        //----------
+        code = read_string(&buff);
+
+        if (is_stop(buff))
+            break;
+
+        code = to_upper(&buff);
+        if(code != OK)
+        {
+            printf("%s", function_base_errors[code]);
+            free(buff);
+            free(current_number);
+            free(max_number);
+            return 1;
+        }
+        //
+        code = abs_number(&buff, &current_number);
+        if (code != OK)
+        {
+            printf("%s", function_base_errors[code]);
+            free(buff);
+            free(current_number);
+            free(max_number);
+            return 1;
+        }
+        if (check_number_abs_and_base(&current_number, base))
+        {
+            if(max_number == NULL)
+                max_number = current_number;
+            else
+            {
+                char* result;
+                code = abs_greater(&current_number, &max_number, &result, base);
+                free(current_number);
+                free(max_number);
+                if(code != OK)
+                {
+                    printf("%s", function_base_errors[code]);
+                    free(result);
+                    free(buff);
+                    return 1;
+                }
+
+                max_number = result;
+            }
+        }
+        else
+        {
+            printf("Incorrect number\n");
+            free(buff);
+            free(current_number);
+            free(max_number);
+            return 1;
+        }
+    }
+    printf("Maximum number is %s\n", max_number);
+    free(buff);
     return 0;
 }

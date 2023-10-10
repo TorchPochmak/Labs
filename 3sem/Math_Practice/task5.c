@@ -149,7 +149,7 @@ enum status_code sum3(double x, double* result, double EPS)
     if (EPS <= 0)
         return INVALID_PARAMETER;
     //Да здравствует Даламбер
-    if(fabs(x) > 1)
+    if(fabs(x) > 1 || equal_d(x,1,EPS))
         return RESERVED;
 
     *result = 1; // n == 0
@@ -174,7 +174,7 @@ enum status_code sum4(double x, double* result, double EPS)
     if (EPS <= 0)
         return INVALID_PARAMETER;
     //Да здравствует Даламбер
-    if(fabs(x) > 1)
+    if(fabs(x) > 1 || equal_d(x,1,EPS))
         return RESERVED;
 
     *result = 0;
@@ -238,15 +238,15 @@ int main(int argc, char** argv)
     printf("A: ");
     code = sum1(x,&res, EPS);
     print_res(code, res);
-    //
+    //-----------
     printf("B: ");
     code = sum2(x, &res, EPS);
     print_res(code, res);
-    //
+    //-----------
     printf("C: ");
     code = sum3(x, &res, EPS);
     print_res(code, res);
-    //
+    //-----------
     printf("D: ");
     code = sum4(x, &res, EPS);
     print_res(code, res);

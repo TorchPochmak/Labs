@@ -95,7 +95,6 @@ static const char* function_base_errors[] =
     "ERROR: Specific for function...\n"
 };
 
-
 enum status_code bin_pow(ll a, ll n, ll* res) {
     if ((n == 0 && a == 0) || (n < 0) || (a == LLONG_MIN))
     {
@@ -134,7 +133,6 @@ enum status_code bin_pow(ll a, ll n, ll* res) {
     }
 }
 
-
 //-----------------------
 
 bool is_sep(char c)
@@ -142,7 +140,7 @@ bool is_sep(char c)
     return (c == '\n' || c == '\t' || c == ' ');
 }
 
-//if bad resturns -1
+//if bad returns -1
 int get_digit(char c)
 {
     if(isdigit(c))
@@ -159,6 +157,8 @@ int get_digit(char c)
 
 enum status_code convert_to_number(char* number, int size, int base, ll* result)
 {
+    if(base < 2 && base > 36)
+        return INVALID_PARAMETER;
     bool overflow = false;
 
     *result = 0;
@@ -199,10 +199,11 @@ enum status_code solve(FILE* input, FILE* output)
 		{
 			cur_ch = getc(input);
 		}
+
         int max_size = 2;
         int size = 1;
-
         char* result = (char*) calloc(size + 1, sizeof(char));
+
         if(result == NULL)
         {
             return ALLOC_ERROR;
@@ -219,6 +220,7 @@ enum status_code solve(FILE* input, FILE* output)
             minuses++;
             cur_ch = getc(input);
         }
+        //----------------
         while((digit = get_digit(cur_ch)) != -1)
         {
             is_num = true;
@@ -246,13 +248,15 @@ enum status_code solve(FILE* input, FILE* output)
             }
             cur_ch = getc(input);
         }
+        //----------------
         if( (!is_sep(cur_ch) && cur_ch != EOF) || minuses > 1)
         {
+            free(result);
             return INVALID_PARAMETER;
         }
-        if(is_num && begin_null)s
+        if(is_num && begin_null)
         {
-            fprintf(output, "0 1 0\n");
+            fprintf(output, "0 2 0\n");
         }
         else{
             result[size - 1] = '\0';

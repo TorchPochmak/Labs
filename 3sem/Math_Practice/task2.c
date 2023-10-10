@@ -87,7 +87,6 @@ static const char* function_base_errors[] =
     "ERROR: Specific for function...\n"
 };
 
-
 enum status_code factorial(ll a, double* res)
 {
     if (a < 0)
@@ -310,22 +309,52 @@ double gamma_sum(double EPS)
 
 double e_equation(double EPS)
 {
-    return exp(1.0);
+    double prev = 0; 
+	double cur = 1;
+	do
+	{
+		prev = cur;	
+		// f(x) = log(x) - 1
+		// f(x) / f'(x) = x * (log(x) - 1)
+		cur -= cur*(log(cur)-1);
+	} while (fabsl(cur - prev) > EPS);
+	return cur;
 }
 
 double pi_equation(double EPS)
 {
-    return acos(-1.0);
+	double prev = 0; 
+	double cur = 1;
+	do
+	{
+		prev = cur;	
+		cur += (cos(cur)+1) / sin(cur);
+	} while (fabsl(cur - prev) > EPS);
+	return cur;
 }
 
 double ln2_equation(double EPS)
 {
-    return log(2);
+	double prev = 0; 
+	double cur = 1;
+	do
+	{
+		prev = cur;	
+		cur -= 1 - 2/exp(cur);
+	} while (fabsl(cur - prev) > EPS);
+	return cur;
 }
 
 double sqrt2_equation(double EPS)
 {
-    return sqrt(2.0);
+    double prev = 0; 
+	double cur = 0.5;
+	do
+	{
+		prev = cur;
+		cur += -cur * cur / 2 + 1;
+	} while (fabsl(cur - prev) > EPS);
+	return cur;
 }
 
 //check prime
@@ -377,7 +406,6 @@ double gamma_equation(double EPS)
     return -log(cur);
 }
 
-
 int main(int argc, char** argv)
 {   
     double EPS = 1e-8;
@@ -409,5 +437,4 @@ int main(int argc, char** argv)
     printf("Constant ln2\tLimit: %.9lf\tInfinite multiplication/sum: %.9lf\tEquation: %.9lf\n", ln2_lim(EPS), ln2_sum(EPS), ln2_equation(EPS));
     printf("Constant sqrt2\tLimit: %.9lf\tInfinite multiplication/sum: %.9lf\tEquation: %.9lf\n", sqrt2_lim(EPS), sqrt2_sum(EPS), sqrt2_equation(EPS));
     printf("Constant gamma\tLimit: %.9lf\tInfinite multiplication/sum: %.9lf\tEquation: %.9lf\n", gamma_lim(EPS), gamma_sum(EPS), gamma_equation(EPS));
-    getchar();
 }

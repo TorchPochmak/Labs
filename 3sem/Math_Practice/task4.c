@@ -46,6 +46,33 @@ static const char* function_base_errors[] =
     "ERROR: Specific for function\n"
 };
 
+char* get_name(char *PATH){
+    char* temp = strrchr(PATH, '/');
+    if(temp == NULL)
+        return PATH;
+    char* name = (char*) malloc(sizeof(char) * strlen(temp) + 5);
+    if (name == NULL){
+        return NULL;
+    }
+    name[0] = 'o';
+    name[1] = 'u';
+    name[2] = 't';
+    name[3] = '_';
+    if (temp == NULL)
+    {
+        for (int i = 0; i < strlen(PATH); i++) 
+        {
+            name[i + 4] = temp[i];
+        }
+    }
+    else {
+        for (int i = 0; i < strlen(temp) - 1; i++) {
+            name[i + 4] = temp[i + 1];
+        }
+    }
+    return name;
+}
+
 enum status_code function_a(FILE* in, FILE* out)
 {
     if(in == NULL || out == NULL)
@@ -210,10 +237,7 @@ enum status_code parse_flag(char* in, char* out_char)
 
 int main(int argc, char** argv)
 {
-   // argc = 4;
-   // argv[1] = "-na";
-   // argv[2] = "input.txt";
-   //argv[3] = "output.txt";
+   argc = 3;
     enum status_code code = OK;
     printf(usage);
     if (argc < 3 || argc > 4)
@@ -226,14 +250,13 @@ int main(int argc, char** argv)
     FILE* output;
 
     char in_name[100];
-    char out_name[100];
+    char* out_name;
     //
     strcpy(in_name, argv[2]);
     //
     if (argc == 3)
     {
-        strcpy(out_name, "out_");
-        strcat(out_name, argv[2]);
+        out_name = get_name(argv[2]);
     }
     else
     {

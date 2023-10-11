@@ -71,11 +71,10 @@ enum status_code str_to_int(char** in, int* out, int base)
 }
 
 
-enum status_code convert_base(char* input, int inputBase, int outputBase, char** result) 
+enum status_code convert_base(int input, int inputBase, int outputBase, char** result) 
 {
     enum status_code code = OK;
-    int decimal;
-    code = str_to_int(&input, &decimal, inputBase);
+    int decimal = input;
 
     if(code != OK)
         return code;
@@ -123,6 +122,7 @@ enum status_code convert_base(char* input, int inputBase, int outputBase, char**
 enum status_code function_a(FILE* in1, FILE* out)
 {
     bool first_lexeme = true;
+    bool first_time = true;
     enum status_code code = OK;
     char c = ' ';
     int counter = 1;
@@ -133,10 +133,18 @@ enum status_code function_a(FILE* in1, FILE* out)
     }
     if (c == EOF)
         return OK;
-    while ((c = fgetc(in1)) != EOF) 
+    do
     {
         if (is_sep(c))
         {
+            if(first_lexeme == true)
+            {
+                if(!first_time)
+                    fprintf(out, " ");
+                else if (counter % 2 == 0 || counter % 5 == 0)
+                    first_time = false;
+            }
+            
             first_lexeme = false;
             continue;
         }
@@ -155,47 +163,44 @@ enum status_code function_a(FILE* in1, FILE* out)
                 c = c + 32;
             }
             char* result = NULL;
-            char* in = (char*) malloc(sizeof(char) * 2);
-            in[0] = c;
-            in[1] = '\0';
-            code = convert_base(in, 10, 4, &result);
+            code = convert_base((int)c, 10, 4, &result);
             if(code != OK)
             {
-                free(in);
                 free(result);
                 return code;
             }
-            fprintf(out, "%s ", result);
-            free(in);
+            fprintf(out, "%s", result);
             free(result);
         }
-        else if (counter % 2 == 0 && isalpha(c)) 
+        else if (counter % 10 == 0)
         {
-            if (is_upper(c)) 
+            fprintf(out, "%c", c);
+        }
+        else if (counter % 2 == 0 ) 
+        {
+            if(isalpha(c))
             {
-                c = c + 32;
+            if (is_upper(c)) 
+                {
+                    c = c + 32;
+                }
             }
-            fprintf(out, "%c ", c);
+            fprintf(out, "%c", c);
         }
         else if (counter % 5 == 0)
         {
             char* result = NULL;
-            char* in = (char*) malloc(sizeof(char) * 2);
-            in[0] = c;
-            in[1] = '\0';
 
-            code = convert_base(in, 10, 8, &result);
+            code = convert_base((int)c, 10, 8, &result);
             if(code != OK)
             {
-                free(in);
                 free(result);
                 return code;
             }
-            fprintf(out, "%s ", result);
-            free(in);
+            fprintf(out, "%s", result);
             free(result);
         }
-    }
+    } while ((c = fgetc(in1)) != EOF);
     return OK;
 }
 

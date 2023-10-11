@@ -262,11 +262,6 @@ int main(int argc, char** argv)
         printf("b cannot be greater than a\n");
         return 1;
     }
-    if(abs(beta - alpha) < RAND_MAX)
-    {
-        printf("Choose less [a,b] range\n");
-        return 1;
-    }
     //-------------
     srand(time(NULL)); 
 
@@ -293,8 +288,7 @@ int main(int argc, char** argv)
 
     //------------
     printf("\nTask 2:\n");
-    return 0;
-    int arr_size2 = get_rand(10,10000);
+    int arr_size2 = get_rand(10,10);
 
     int* a = (int*) calloc(arr_size2, sizeof(int));
     if(a == NULL)

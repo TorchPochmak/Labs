@@ -83,7 +83,6 @@ static const char* input_errors[] =
     "ERROR: Unknown input\n",
     "ERROR: Cannot open file\n"
 };
-
 static const char* function_base_errors[] =
 {
     "OK\n",
@@ -190,6 +189,8 @@ enum status_code convert_to_number(char* number, int size, int base, ll* result)
 
 enum status_code solve(FILE* input, FILE* output)
 {
+    if(input == NULL || output == NULL)
+        return INVALID_PARAMETER;
     enum status_code code = OK;
     char cur_ch = '\n';
 	
@@ -293,6 +294,7 @@ int main(int argc, char** argv)
 	}
 	if ((output = fopen(argv[2], "w")) == NULL)
 	{
+        fclose(input);
 		printf("%s", input_errors[3]);
 		return 1;
 	}

@@ -40,7 +40,6 @@ static const char* function_base_errors[] =
     "ERROR: Specific for function\n"
 };
 
-
 //if bad returns -1
 int get_digit(char c)
 {
@@ -93,7 +92,7 @@ bool check_number_abs_and_base(char** number, int base)
     return true;
 }
 
-enum status_code abs_greater(char** num1, char** num2, char** result, int base)
+enum status_code abs_greater(char** num1, char** num2, char** result, bool has_minus1, bool has_minus2, bool *has_minus_res, int base)
 {
     if (!(check_number_abs_and_base(num1, base) && check_number_abs_and_base(num2, base)))
         return INVALID_PARAMETER;
@@ -108,6 +107,7 @@ enum status_code abs_greater(char** num1, char** num2, char** result, int base)
         if(result == NULL)
             return ALLOC_ERROR;
         strcpy(*result, *num1);
+        *has_minus_res = has_minus1;
     }
     else if (len1 < len2)
     {
@@ -115,6 +115,7 @@ enum status_code abs_greater(char** num1, char** num2, char** result, int base)
         if(result == NULL)
             return ALLOC_ERROR;
         strcpy(*result, *num2);
+        *has_minus_res = has_minus2;
     }
     else
     {
@@ -135,17 +136,19 @@ enum status_code abs_greater(char** num1, char** num2, char** result, int base)
         if (first_greater)
         {
             strcpy(*result, *num1);
+            *has_minus_res = has_minus1;
         }
         else
         {
             strcpy(*result, *num2);
+            *has_minus_res = has_minus2;
         }
     }
     return OK;
 }
 
 
-enum status_code abs_number(char** num, char** result)
+enum status_code abs_number(char** num, char** result, bool* has_minus)
 {
     char* number = *num;
     char cur_ch = ' ';
@@ -217,15 +220,21 @@ enum status_code abs_number(char** num, char** result)
     {
         (*result)[size - 1] = '\0';
     }
+
+    if (minuses == 1)
+        *has_minus = true;
+    else
+        *has_minus = false;
+
     return OK;
 }
 
 
-enum status_code str_to_int(char** in, int* out)
+enum status_code str_to_int(char** in, int* out, int base)
 {
     errno = 0;
     char* endptr = NULL;
-    *out = strtol(*in, &endptr, 10);
+    *out = strtol(*in, &endptr, base);
     if(errno == ERANGE)
         return MY_OVERFLOW;
 
@@ -291,12 +300,71 @@ enum status_code read_string(char** res)
     return OK;
 }
 
+enum status_code convert_base(char* input, int inputBase, int outputBase, char** result) 
+{
+    enum status_code code = OK;
+    int decimal;
+    code = str_to_int(&input, &decimal, inputBase);
+
+    if(code != OK)
+        return code;
+    if(decimal == 0)
+    {
+        *result = "0\0";
+        return OK;
+    }
+    
+    int max_size = 32;
+
+    *result = (char*) malloc(sizeof(char) * max_size);
+    int index = 0;
+
+    while (decimal > 0) {
+        if (index == max_size - 1) 
+        {
+            max_size *= 2;
+            if (max_size > MAX_INPUT_SIZE)
+                return ALLOC_ERROR;
+            char* copyto_str = (char*) realloc(*result, max_size);
+            if (copyto_str == NULL)
+            {
+                free(*result);
+                return ALLOC_ERROR;
+            }
+            *result = copyto_str;
+        }
+        int remainder = decimal % outputBase;
+        decimal /= outputBase;
+
+        (*result)[index++] = (remainder < 10) ? (remainder + '0') : (remainder - 10 + 'A');
+    }
+
+    // Переворачиваем строку, чтобы получить правильный порядок символов
+    for (int i = 0, j = index - 1; i < j; i++, j--) {
+        char temp = (*result)[i];
+        (*result)[i] = (*result)[j];
+        (*result)[j] = temp;
+    }
+    (*result)[index] = '\0';
+    return OK;
+}
+
 int main(int argc, char** argv) 
 {
+    bool has_maximum_minus = false;
+    bool has_current_minus = false;
+
+    if(argc != 1)
+    {
+        printf("Wrong count of parameters");
+        return 1;
+    }
     char* maximum;
     enum status_code code = OK;
     int base = 0;
     char* buff = (char*) calloc(MAX_INPUT_SIZE, sizeof(char));
+
+
     if(buff == NULL)
     {
         code = ALLOC_ERROR;
@@ -313,7 +381,7 @@ int main(int argc, char** argv)
         free(buff);
         return 1;
     }
-    code = str_to_int(&buff, &base);
+    code = str_to_int(&buff, &base, 10);
     if(code != OK)
     {
         printf("%s", function_base_errors[code]);
@@ -353,7 +421,7 @@ int main(int argc, char** argv)
             return 1;
         }
         //
-        code = abs_number(&buff, &current_number);
+        code = abs_number(&buff, &current_number, &has_current_minus);
         if (code != OK)
         {
             printf("%s", function_base_errors[code]);
@@ -365,11 +433,14 @@ int main(int argc, char** argv)
         if (check_number_abs_and_base(&current_number, base))
         {
             if(max_number == NULL)
+            {
                 max_number = current_number;
+                has_maximum_minus = has_current_minus;
+            }
             else
             {
                 char* result;
-                code = abs_greater(&current_number, &max_number, &result, base);
+                code = abs_greater(&current_number, &max_number, &result, has_current_minus, has_maximum_minus, &has_maximum_minus, base);
                 free(current_number);
                 free(max_number);
                 if(code != OK)
@@ -392,7 +463,25 @@ int main(int argc, char** argv)
             return 1;
         }
     }
-    printf("Maximum number is %s\n", max_number);
+    char* result = NULL;
+    for(int i = 9; i <= 36; i += 9)
+    {
+        code = convert_base(max_number, base, i, &result);
+        if(code != OK)
+        {
+            printf("%s", function_base_errors[code]);
+            free(buff);
+            free(max_number);
+            free(result);
+            return 1;
+        }
+        if(has_maximum_minus)
+            printf("Maximum number in base %d is -%s\n", i, result);
+        else
+            printf("Maximum number in base %d is %s\n", i, result);
+    }
     free(buff);
+    free(max_number);
+    free(result);
     return 0;
 }

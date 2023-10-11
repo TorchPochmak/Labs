@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <math.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 #define MAX_INPUT_SIZE 100
 
@@ -59,25 +60,43 @@ enum status_code abs_number(char* number)
 
 }
 
-//if bad returns -1
-int get_digit(char c)
+
+
+void fclose_all (int count, ...)
 {
-    if(isdigit(c))
+    va_list argptr;
+    va_start(argptr, count);
+
+    for(int i = 0; i < count; i++)
     {
-        return c - '0';
+        int f = va_arg(argptr, int);
+        printf("\n%d\n", f);
     }
-        
-    if (isalpha(c))
+
+    va_end(argptr);
+}
+
+void free_all(int count, ...)
+{
+    va_list argptr;
+    va_start(argptr, count);
+
+    for(int i = 0; i < count; i++)
     {
-        return toupper(c) - 'A' + 10;
+        void* obj = va_arg(argptr, void*);
+        free(obj);
     }
-    return -1;
+
+    va_end(argptr);
 }
 
 int main(int argc, char** argv) 
 {
+    char* g = (char*) malloc(sizeof(char) * 6);
+    free_all(2, g, NULL);
    char* dfds = "0";
    printf("GG");
-   int res = get_digit()
-   return 0;
+   fclose_all(4, 1,2,3,4);
+   getchar();
+      return 0;
 }

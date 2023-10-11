@@ -122,11 +122,32 @@ enum status_code convert_base(char* input, int inputBase, int outputBase, char**
 
 enum status_code function_a(FILE* in1, FILE* out)
 {
+    bool first_lexeme = true;
     enum status_code code = OK;
-    char c;
+    char c = ' ';
     int counter = 1;
+    while((c = fgetc(in1)) != EOF)
+    {
+        if(!is_sep(c))
+            break;
+    }
+    if (c == EOF)
+        return OK;
     while ((c = fgetc(in1)) != EOF) 
     {
+        if (is_sep(c))
+        {
+            first_lexeme = false;
+            continue;
+        }
+        else
+        {
+            if (first_lexeme == false)
+            {
+                first_lexeme = true;
+                counter++;
+            }
+        }
         if (counter % 10 == 0 && isalpha(c)) 
         {
             if (is_upper(c)) 
@@ -139,7 +160,11 @@ enum status_code function_a(FILE* in1, FILE* out)
             in[1] = '\0';
             code = convert_base(in, 10, 4, &result);
             if(code != OK)
+            {
+                free(in);
+                free(result);
                 return code;
+            }
             fprintf(out, "%s ", result);
             free(in);
             free(result);
@@ -152,22 +177,24 @@ enum status_code function_a(FILE* in1, FILE* out)
             }
             fprintf(out, "%c ", c);
         }
-        else if (counter % 5 == 0 && !is_sep(c))
+        else if (counter % 5 == 0)
         {
             char* result = NULL;
             char* in = (char*) malloc(sizeof(char) * 2);
             in[0] = c;
             in[1] = '\0';
 
-            code = convert_base(in, 10, 4, &result);
+            code = convert_base(in, 10, 8, &result);
             if(code != OK)
+            {
+                free(in);
+                free(result);
                 return code;
-
+            }
             fprintf(out, "%s ", result);
             free(in);
             free(result);
         }
-        counter++;
     }
     return OK;
 }

@@ -175,7 +175,7 @@ enum status_code function_a(FILE* in1, FILE* out)
 enum status_code function_r(FILE* in1, FILE* in2, FILE* out)
 {
     char input[MAX_INPUT_SIZE];
-    bool is_first;
+    bool is_first = true;
     bool is_f1_end = false;
     bool is_f2_end = false;
     while (is_f1_end == false && is_f2_end == false) 
@@ -189,7 +189,7 @@ enum status_code function_r(FILE* in1, FILE* in2, FILE* out)
         }
         else 
         {
-            if (fscanf(in1, "%s", input) == EOF) 
+            if (fscanf(in2, "%s", input) == EOF) 
                 is_f2_end = true;
             else
                 fprintf(out, "%s ", input);
@@ -206,6 +206,7 @@ enum status_code function_r(FILE* in1, FILE* in2, FILE* out)
     {
         fprintf(out, "%s ", input);
     }
+    return OK;
 }
 
 enum status_code solve_flag(char flag, int argc, char** argv)
@@ -237,7 +238,7 @@ enum status_code solve_flag(char flag, int argc, char** argv)
                     printf("%s", input_errors[3]);
                     return INVALID_PARAMETER;
                 }
-                if ((out = fopen(argv[3], "w")) == NULL)
+                if ((out = fopen(argv[4], "w")) == NULL)
                 {
                     fclose(in1);
                     fclose(in2);
@@ -282,8 +283,8 @@ enum status_code solve_flag(char flag, int argc, char** argv)
             printf(input_errors[1]);
             code = INVALID_PARAMETER;
         }
-    return code;
     }
+    return code;
 }
 
 enum status_code parse_flag(char* in, char* out_char)
@@ -307,7 +308,6 @@ enum status_code parse_flag(char* in, char* out_char)
     return INVALID_PARAMETER;
 }
 
-
 int main(int argc, char** argv)
 {
     enum status_code code = OK;
@@ -315,6 +315,11 @@ int main(int argc, char** argv)
     //a - 4 args;
     // name flag f1 f2 outf
     // name flag f1 outf
+    argc = 4;
+    argv[1] = "-a";
+    argv[2] = "task7_in1.txt";
+    argv[3] = "task7_in2.txt";
+    argv[3] = "task7_out.txt";
     if(argc < 4)
     {
         printf("%s", input_errors[0]);

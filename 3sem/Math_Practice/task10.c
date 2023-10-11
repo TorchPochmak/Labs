@@ -65,7 +65,7 @@ bool is_stop(char* input)
 {
     if(input == NULL || strlen(input) != 4)
         return false;
-    char* str = "Stop\0";
+    char* str = "Stop";
     for(int i = 0; i < 5; i++)
     {
         if(str[i] != input[i])
@@ -159,7 +159,7 @@ enum status_code abs_number(char** num, char** result, bool* has_minus)
     int size = 1;
 
     *result = (char*) calloc(size + 1, sizeof(char));
-    if(result == NULL)
+    if(*result == NULL)
     {
         return ALLOC_ERROR;
     }
@@ -310,7 +310,7 @@ enum status_code convert_base(char* input, int inputBase, int outputBase, char**
         return code;
     if(decimal == 0)
     {
-        *result = "0\0";
+        *result = "0";
         return OK;
     }
     
@@ -401,6 +401,7 @@ int main(int argc, char** argv)
     if(is_stop(buff))
     {
         printf("No numbers enetered");
+        free(buff);
         return 1;
     }
     while(true)

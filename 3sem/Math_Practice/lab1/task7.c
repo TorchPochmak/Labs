@@ -122,7 +122,8 @@ enum status_code convert_base(char* input, int inputBase, int outputBase, char**
 
 enum status_code function_a(FILE* in1, FILE* out)
 {
-    bool first_lexeme = true;
+    bool last_written = false;
+    char last_c = ' ';
     enum status_code code = OK;
     char c = ' ';
     int counter = 1;
@@ -133,23 +134,14 @@ enum status_code function_a(FILE* in1, FILE* out)
     }
     if (c == EOF)
         return OK;
+    
     while ((c = fgetc(in1)) != EOF) 
     {
-        if (is_sep(c))
-        {
-            first_lexeme = false;
-            continue;
-        }
-        else
-        {
-            if (first_lexeme == false)
-            {
-                first_lexeme = true;
-                counter++;
-            }
-        }
+        if(!is_sep(last_c) && is_sep(c))
+            counter++;
         if (counter % 10 == 0 && isalpha(c)) 
         {
+            last_written = true;
             if (is_upper(c)) 
             {
                 c = c + 32;
@@ -171,6 +163,7 @@ enum status_code function_a(FILE* in1, FILE* out)
         }
         else if (counter % 2 == 0 && isalpha(c)) 
         {
+            last_written = true;
             if (is_upper(c)) 
             {
                 c = c + 32;
@@ -179,6 +172,7 @@ enum status_code function_a(FILE* in1, FILE* out)
         }
         else if (counter % 5 == 0)
         {
+            last_written = true;
             char* result = NULL;
             char* in = (char*) malloc(sizeof(char) * 2);
             in[0] = c;
@@ -195,6 +189,16 @@ enum status_code function_a(FILE* in1, FILE* out)
             free(in);
             free(result);
         }
+        else if(last_written && is_sep(c))
+        {
+            last_written = true;
+            fprintf(out, " ");
+        }
+        else
+        {
+            last_written = false;
+        }
+        last_c = c;
     }
     return OK;
 }
@@ -344,9 +348,9 @@ int main(int argc, char** argv)
     // name flag f1 outf
     argc = 4;
     argv[1] = "-a";
-    argv[2] = "task7_in1.txt";
-    argv[3] = "task7_in2.txt";
-    argv[3] = "task7_out.txt";
+    argv[2] = "input.txt";
+    argv[3] = "output.txt";
+    argv[3] = "output.txt";
     if(argc < 4)
     {
         printf("%s", input_errors[0]);

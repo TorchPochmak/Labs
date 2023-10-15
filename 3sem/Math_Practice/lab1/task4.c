@@ -123,7 +123,7 @@ enum status_code function_s(FILE* in, FILE* out)
             fprintf(out, "%d\n", counter);
             counter = 0;
         } 
-        else if (isalpha(c) || isdigit(c) || c == ' ' || c == '\t') 
+        else if (!(isalpha(c) || isdigit(c) || c == ' ' || c == '\t')) 
         {
             counter++;
         }

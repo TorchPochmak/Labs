@@ -46,7 +46,7 @@ status_code solve(char* filename)
 	if ((file = fopen(filename, "w")) == NULL)
 		return FILE_ERROR;
 	
-	char bytes_to_write[BYTE_SIZE_WRITE] = { 3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 };
+	unsigned char bytes_to_write[BYTE_SIZE_WRITE] = { 3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 };
 	
 	if (fwrite(bytes_to_write, sizeof(char), BYTE_SIZE_WRITE, file) != BYTE_SIZE_WRITE)
 	{
@@ -55,7 +55,7 @@ status_code solve(char* filename)
 	}
 	fclose(file);
     //-----
-	if ((file = fopen(filename, "r")) == NULL)
+	if ((file = fopen(filename, "rb")) == NULL)
 		return FILE_ERROR;
 
     char c;
@@ -84,11 +84,11 @@ status_code solve(char* filename)
 	fclose(file);
     //-----
 	
-	if ((file = fopen(filename, "r")) == NULL)
+	if ((file = fopen(filename, "rb")) == NULL)
 		return FILE_ERROR;
 	
 	fseek(file, SEEK_SET_SHIFT, SEEK_SET);
-	char bytes_to_read[BYTE_SIZE_READ];
+	unsigned char bytes_to_read[BYTE_SIZE_READ];
 	
 	if (fread(bytes_to_read, sizeof(char), BYTE_SIZE_READ, file) != BYTE_SIZE_READ)
 	{

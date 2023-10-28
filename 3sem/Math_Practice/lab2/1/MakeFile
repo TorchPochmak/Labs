@@ -1,0 +1,2 @@
+all:
+	gcc task1.c my_lib.c -o a.exe

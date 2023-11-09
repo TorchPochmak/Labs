@@ -243,3 +243,27 @@ void free_all(int count, ...)
 
     va_end(argptr);
 }
+
+// Printing arrs
+
+void print_double_arr(double* arr, int count, char* sep)
+{
+    if(sep == NULL)
+        sep = " ";
+    for(int i = 0; i < count - 1; i++)
+    {
+        printf("%lf%s", arr[i], sep);
+    }
+    printf("%lf", arr[count - 1]);
+}
+
+void print_int_arr(int* arr, int count, char* sep)
+{
+    if(sep == NULL)
+        sep = " ";
+    for(int i = 0; i < count - 1; i++)
+    {
+        printf("%d%s", arr[i], sep);
+    }
+    printf("%d", arr[count - 1]);
+}

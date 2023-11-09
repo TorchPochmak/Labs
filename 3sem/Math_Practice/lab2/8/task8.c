@@ -79,7 +79,14 @@ status_code remove_zeros(char* input, char** output)
         else
             break;
     }
+    if(len == count)
+    {
+        *output = "0";
+        return OK;
+    }
     *output = (char*) calloc(len - count + 1, sizeof(char));
+    if(output == NULL)
+        return ALLOC_ERROR;
     for(int i = 0; i < len - count; i++)
     {
         (*output)[i] = input[i + count];
@@ -115,21 +122,25 @@ status_code sum(char* x, char* y, int base, char** result)
 {
     if(x == NULL || y == NULL)
         return INVALID_PARAMETER;
-    int lenx, leny;
-    lenx = strlen(x);
-    leny = strlen(y);
-    int max_len = lenx > leny ? lenx + 1 : leny + 1;
-    *result = (char*) calloc(max_len + 1, sizeof(char));
-    int i = 0;
-    int j = 0;
-    int digit, digit2;
-    
+
     remove_zeros(x, &x);
     remove_zeros(y, &y);
     reverse_str(x, &x);
     reverse_str(y, &y);
     //00123 -> 321
     //00012 -> 21
+    int lenx, leny;
+    lenx = strlen(x);
+    leny = strlen(y);
+    int max_len = lenx > leny ? lenx + 1 : leny + 1;
+    *result = (char*) calloc(max_len + 1, sizeof(char));
+    if(result == NULL || *result == NULL)
+        return ALLOC_ERROR;
+    int i = 0;
+    int j = 0;
+    int digit, digit2;
+    
+   
     int remember = 0;
     int counter = 0;
     while(i < lenx && j < leny)
@@ -138,7 +149,6 @@ status_code sum(char* x, char* y, int base, char** result)
         digit2 = get_digit(y[j]);
         if(digit == -1 || digit2 == -1 || digit >= base || digit2 >= base)
         {
-            free(*result);
             return INVALID_PARAMETER;
         }
         int res = (digit + digit2 + remember) % base;
@@ -150,16 +160,26 @@ status_code sum(char* x, char* y, int base, char** result)
     }
     while(i < lenx)
     {
-        int res = (get_digit(x[i]) + remember) % base;
-        remember = (get_digit(x[i]) + remember) / base;
+        int d = get_digit(x[i]);
+        if(d >= base || d == -1)
+        {
+            return INVALID_PARAMETER;
+        }
+        int res = (d + remember) % base;
+        remember = (d + remember) / base;
         (*result)[counter] = get_char_of_digit(res);
         counter++;
         i++;
     }
     while(j < leny)
     {
-        int res = (get_digit(y[j]) + remember) % base;
-        remember = (get_digit(y[j]) + remember) / base;
+        int d = get_digit(y[j]);
+        if(d >= base || d == -1)
+        {
+            return INVALID_PARAMETER;
+        }
+        int res = (d + remember) % base;
+        remember = (d + remember) / base;
         (*result)[counter] = get_char_of_digit(res);
         counter++;
         j++;
@@ -167,23 +187,35 @@ status_code sum(char* x, char* y, int base, char** result)
     
     (*result)[counter] = get_char_of_digit(remember);
     (*result)[counter + 1] = '\0';
-    reverse_str(*result, &(*result));
-    remove_zeros(*result, &(*result));
+    reverse_str(*result, result);
+    remove_zeros(*result, result);
 
     return OK;
 }
 
 status_code sum_all(int base, char** result, int count, ...)
 {
+    if(base < 2 || base > 36)
+        return INVALID_PARAMETER;
+    status_code code = OK;
     va_list argptr;
     va_start(argptr, count);
 
     char* res = (char*) va_arg(argptr, char*);
+    if(count == 1)
+    {
+        *result = res;
+        va_end(argptr);
+        return OK;
+    }
+    char* a;
     for(int i = 0; i < count - 1; i++)
     {
-        char* a = (char*) va_arg(argptr, char*);
-        printf("%s\n", a);
-        sum(res, a, base, &res);
+        a = (char*) va_arg(argptr, char*);
+        if ((code = sum(res, a, base, &res)) != OK)
+        {
+            return INVALID_PARAMETER;
+        }
     }
     va_end(argptr);
     *result = res;
@@ -195,10 +227,12 @@ int main(int argc, char** argv)
     status_code code = OK;
     char* result;
 
-    sum_all(16, &result, 4, "FF", "1", "000F0", "F");
+    if((code = sum_all(16, &result, 3, "000000001", "00000001", "000000001")) != OK)
+    {
+        free(result);
+        return show_error(code);
+    }
     printf("Sum: %s", result);
-
-
-    //----------------------------------------------------------------
-    return 0;
+    free(result);
+    return OK;
 }

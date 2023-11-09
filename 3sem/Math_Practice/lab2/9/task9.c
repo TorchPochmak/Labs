@@ -128,6 +128,8 @@ status_code solve(int base, int** result, int count, ...)
     va_list argptr;
     va_start(argptr, count);
     *result = (int*) calloc(count, sizeof(int));
+    if(result == NULL)
+        return ALLOC_ERROR;
     for(int i = 0; i < count; i++)
     {
         int res;

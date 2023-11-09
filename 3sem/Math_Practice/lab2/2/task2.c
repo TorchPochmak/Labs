@@ -16,44 +16,7 @@
 #define mult(x, y, z) __builtin_mul_overflow(x, y, z)
 #define sub(x,y,z) __builtin_sub_overflow(x, y, z)
 
-//Fuck recursion all my homies use while()
-status_code bin_pow_no_rec(ll a, ll n, ll* res) {
-    if ((n == 0 && a == 0) || (n < 0) || (a == LLONG_MIN))
-    {
-        return INVALID_PARAMETER;
-    }
 
-    ll multiplier = 1;
-    bool overflow = false;
-
-    //Работа с модулем
-    *res = 1;
-    if (a < 0 && (n & 1 == 1))
-    {
-        multiplier = -1;
-    }
-    a = abs(a);
-
-    while (n) 
-    {
-        if (n & 1)
-        {
-            overflow =  overflow || mult(*res, a, res);
-        }
-        overflow =  overflow || mult(a,a,&a);
-        n >>= 1;
-    }
-
-    if (!overflow)
-    {
-        *res = *res * multiplier;
-        return OK;
-    }
-    else
-    {
-        return MY_OVERFLOW;
-    }
-}
 
 status_code bin_pow_rec(ll a, ll n, ll* res)
 {
@@ -86,7 +49,6 @@ status_code bin_pow_rec(ll a, ll n, ll* res)
         return MY_OVERFLOW;
     else
         return OK;
-
 }
 
 status_code geometric_aver(double* result, int count, ...)
@@ -120,12 +82,6 @@ int main(int argc, char** argv)
     if((code = bin_pow_rec(test_a, test_n, &test_res)) != OK)
         return show_error(code);
     printf("%ld^%ld=%ld\n", test_a, test_n, test_res);
-
-    // test_a = 0;
-    // test_n = 0;
-    // if((code = bin_pow_rec(test_a, test_n, &test_res)) != OK)
-    //     return show_error(code);
-    // printf("%ld^%ld=%ld\n", test_a, test_n, test_res);
 
     double g_test;
     if((code = geometric_aver(&g_test, 5, 1.0, 2.0, 3.0, 4.0, 5.0)) != OK)

@@ -62,20 +62,33 @@ status_code poly_decompose(double eps, double a, double** result_coefs, int powe
     return OK;
 }
 
-
 int main(int argc, char** argv)
 {
     status_code code = OK;
     // test_arr1 = {-2, 1, -3, 0, 1};
     double* result;
-    
+    //-2 + x -3x^2 + 0x^3 + x^4
     if((code = poly_decompose(0.0001, 3, &result, 4, -2.0, 1.0, -3.0, 0.0, 1.0)) != OK)
         show_error(code);
+    
     printf("Input coefs:");
-    double test1[5] = {-2,1,-3,0,1};
+    double test1[5] = {-2,1,3,0,1};
     print_double_arr(test1, 5, " ");
     printf("\n");
     printf("Ouptut coefs:");
     print_double_arr(result, 5, " ");
+    printf("\n");
+
+    // test_arr2 = {0,0,0,3};
+    //0 + 0x + 0x^2 + 3x^3
+    if((code = poly_decompose(0.0001, 3, &result, 3, 0.0, 0.0, 0.0, 3.0)) != OK)
+        show_error(code);
+    
+    printf("Input coefs:");
+    double test2[4] = {0.0, 0.0, 0.0, 3.0};
+    print_double_arr(test2, 4, " ");
+    printf("\n");
+    printf("Ouptut coefs:");
+    print_double_arr(result, 4, " ");
     printf("\n");
 }

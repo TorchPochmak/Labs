@@ -102,21 +102,22 @@ status_code validate(int argc, char** argv)
 {
     if(argc < 3)
         return INPUT_ERROR;
-    if(my_strlen(argv[2]) != 2)
+    if(my_strlen(argv[1]) != 2)
         return INPUT_ERROR;
     //
-    char flag = argv[2][1];
-    char flag_ch = argv[2][0];
+    char flag = argv[1][1];
+    char flag_ch = argv[1][0];
     //
-    if(flag_ch != '-' && flag_ch != '/')
+    if(flag_ch != '-')
         return INPUT_ERROR;
     if((flag == 'l' || flag == 'r' || flag == 'u' || flag == 'n') && argc == 3)
         return OK;
-    if(flag == 'c' && argc >= 5)
+    if(flag == 'c' && argc >= 4)
     {
         status_code code = OK;
         unsigned int result = 0;
-        code = str_to_uint(&argv[3], &result, 10);
+        
+        code = str_to_uint(&argv[2], &result, 10);
         if(code != OK)
             return INVALID_PARAMETER;
         return OK;
@@ -132,7 +133,7 @@ status_code reverse_str(char* str, char** result)
         return ALLOC_ERROR;
     for(int i = 0; i < len; i++)
     {
-        (*result)[len - i] = str[i];
+        (*result)[len - i - 1] = str[i];
     }
     (*result)[len] = '\0';
     return OK;
@@ -158,6 +159,7 @@ status_code solve_u(char* str, char** result)
 status_code solve_n(char* str, char** result)
 {
     int len = my_strlen(str);
+    
     *result = (char*) calloc(len + 1, sizeof(char));
     if(result == NULL || *result == NULL)
         return ALLOC_ERROR;
@@ -173,7 +175,7 @@ status_code solve_n(char* str, char** result)
             other_count++;
     }
     alpha_ind = digit_count;
-    other_count = digit_count + alpha_count;
+    other_ind = digit_count + alpha_count;
     for(int i = 0; i < my_strlen(str); i++)
     {
         if(isdigit(str[i]))
@@ -202,7 +204,8 @@ status_code solve_c(int argc, char** argv, char** result)
     status_code code = OK;
 
     unsigned int seed = 0;
-    if((code = str_to_uint(&argv[3], &seed, 10)) != OK)
+    
+    if((code = str_to_uint(&argv[2], &seed, 10)) != OK)
         return code;
     srand(seed);
     
@@ -211,10 +214,10 @@ status_code solve_c(int argc, char** argv, char** result)
     bool* done = (bool*) calloc(count, sizeof(int));
     if(done == NULL)
         return ALLOC_ERROR;
-    int all_count = my_strlen(argv[1]);
-    for(int i = 4; i < argc; i++)
+    int all_count = 0;
+    for(int i = 3; i < argc; i++)
     {
-        all_count += my_strlen(argv[3]);
+        all_count += my_strlen(argv[i]);
     }    
 
     *result = (char*) calloc(all_count + count, sizeof(char));
@@ -228,7 +231,7 @@ status_code solve_c(int argc, char** argv, char** result)
         if(!done[random])
         {
             done[random] = true;
-            int argv_index = random == 0 ? 1 : random + 3;
+            int argv_index = random == 0 ? 3 : random + 3;
             int len = my_strlen(argv[argv_index]);
             for(int i = 0; i < len; i++)
             {
@@ -246,18 +249,18 @@ status_code solve_c(int argc, char** argv, char** result)
 status_code solve_flags(int argc, char** argv)
 {
     status_code code = OK;
-    char flag = argv[2][1];
+    char flag = argv[1][1];
     switch(flag)
     {
         case 'l':
         {
-            printf("Length of input string is %d", my_strlen(argv[1]));
+            printf("Length of input string is %d", my_strlen(argv[2]));
             break;
         }
         case 'r':
         {
             char* result = NULL;
-            if((code = reverse_str(argv[1], &result)) != OK)
+            if((code = reverse_str(argv[2], &result)) != OK)
                 return code;
             printf("Reversed input string is: %s", result);
             free(result);
@@ -266,7 +269,7 @@ status_code solve_flags(int argc, char** argv)
         case 'u':
         {
             char* result = NULL;
-            if((code = solve_u(argv[1], &result)) != OK)
+            if((code = solve_u(argv[2], &result)) != OK)
                 return code;
             printf("ToUpper odd positions in input str is: %s", result);
             free(result);
@@ -275,7 +278,7 @@ status_code solve_flags(int argc, char** argv)
         case 'n':
         {
             char* result = NULL;
-            if((code = solve_n(argv[1], &result)) != OK)
+            if((code = solve_n(argv[2], &result)) != OK)
                 return code;
             printf("Sorted input string (digits, alpha, other) is: %s", result);
             free(result);

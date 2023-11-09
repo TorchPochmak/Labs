@@ -121,6 +121,8 @@ status_code convert_base(char* input, int inputBase, int outputBase, char** resu
     int max_size = 32;
 
     *result = (char*) malloc(sizeof(char) * max_size);
+    if(result == NULL)
+        return ALLOC_ERROR;
     int index = 0;
 
     while (decimal > 0) {

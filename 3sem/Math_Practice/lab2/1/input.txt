@@ -1,0 +1,20 @@
+in: ./a.exe -l abcde
+out: 5
+
+in: ./a.exe -l
+out: ERROR
+
+in: ./a.exe -u AaB_Cc
+out: AAB_CC
+
+in: ./a.exe -r abcde
+out: edcba
+
+in: ./a.exe -r d
+out: d
+
+in: ./a.exe -n f-d+s324
+out: 324fds-+
+
+in: /a.exe -c 3 cd ef gh 123 --
+out: Concatenated strings, using seed: -cefcd--gh123

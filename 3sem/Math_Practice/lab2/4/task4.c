@@ -141,6 +141,8 @@ status_code calc_poly(double* result, double x, int n, ...)
     va_list argptr;
     va_start(argptr, n + 1);
     double* coefs = (double*) calloc(n + 1, sizeof(double));
+    if(coefs == NULL)
+        return ALLOC_ERROR;
     for(int i = 0; i <= n; i++)
     {  
         coefs[n - i] = va_arg(argptr, double);

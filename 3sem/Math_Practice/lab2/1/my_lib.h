@@ -72,4 +72,8 @@ void fclose_all (int count, ...);
 
 void free_all(int count, ...);
 
+void print_double_arr(double* arr, int count, char* separator);
+
+void print_int_arr(int* arr, int count, char* sep);
+
 #endif

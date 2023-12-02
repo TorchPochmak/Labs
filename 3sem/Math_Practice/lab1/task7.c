@@ -81,13 +81,15 @@ enum status_code convert_base(char* input, int inputBase, int outputBase, char**
         return code;
     if(decimal == 0)
     {
-        *result = "0\0";
+        *result = "0";
         return OK;
     }
     
     int max_size = 32;
 
     *result = (char*) malloc(sizeof(char) * max_size);
+    if(*result == NULL)
+        return ALLOC_ERROR;
     int index = 0;
 
     while (decimal > 0) {
@@ -102,6 +104,7 @@ enum status_code convert_base(char* input, int inputBase, int outputBase, char**
                 free(*result);
                 return ALLOC_ERROR;
             }
+            free(*result);
             *result = copyto_str;
         }
         int remainder = decimal % outputBase;
@@ -122,6 +125,8 @@ enum status_code convert_base(char* input, int inputBase, int outputBase, char**
 
 enum status_code function_a(FILE* in1, FILE* out)
 {
+    char* in = (char*) malloc(sizeof(char) * 2);
+    
     bool last_written = false;
     char last_c = ' ';
     enum status_code code = OK;
@@ -148,6 +153,8 @@ enum status_code function_a(FILE* in1, FILE* out)
             }
             char* result = NULL;
             char* in = (char*) malloc(sizeof(char) * 2);
+            if(!in)
+
             in[0] = c;
             in[1] = '\0';
             code = convert_base(in, 10, 4, &result);

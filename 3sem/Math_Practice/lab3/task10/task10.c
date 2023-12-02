@@ -122,6 +122,7 @@ typedef struct Node
     struct Node* parent;
     char letter;
 } Node;
+
 status_code create_node(char content, Node** out_node)
 {
     if(out_node == NULL)
@@ -136,6 +137,7 @@ status_code create_node(char content, Node** out_node)
     (*out_node)->letter = content;
     return OK;
 }
+
 status_code create_child(Node* parent, char content, Node** out_child)
 {
     status_code code = OK;
@@ -157,6 +159,7 @@ status_code create_child(Node* parent, char content, Node** out_child)
     *out_child = new_child;
     return OK;
 }
+
 void print_tree(Node* root, FILE* out, int spaces)
 {
     if(root == NULL || out == NULL)
@@ -245,6 +248,7 @@ void free_tree(Node* root)
         free_tree(root->brother);
     free(root);
 }
+
 int main(int argc, char** argv)
 {
     status_code code = OK;

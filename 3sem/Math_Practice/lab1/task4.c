@@ -54,14 +54,14 @@ enum status_code function_a(FILE* in, FILE* out)
     char c;
     while ((c = fgetc(in)) != EOF)
     {
-        if (!isdigit(c)) 
-        {
-            fprintf(out, "%x ", c);
-        }
-        else 
-        {
-            fprintf(out, "%c ", c);
-        }
+        if (isdigit(c))
+		{
+			fputc(c, out);
+		}
+		else
+		{
+			fprintf(out, "%X", c);
+		}
     }
     return OK;
 }
@@ -187,9 +187,9 @@ void fclose_all (int count, ...)
     va_end(argptr);
 }
 
-enum status_code parse_flag(char* in, char* out_char)
+enum status_code parse_flag(char* in, char* out_char, int argc)
 {
-    if(strlen(in) == 3)
+    if(strlen(in) == 3 && argc == 4)
     {
         if((in[0] == '-' || in[0] == '/') && in[1] == 'n')
         {
@@ -197,7 +197,7 @@ enum status_code parse_flag(char* in, char* out_char)
             return OK;
         }
     }
-    if(strlen(in) == 2)
+    if(strlen(in) == 2 && argc == 3)
     {
         if((in[0] == '-'  || in[0] == '/'))
         {
@@ -208,12 +208,45 @@ enum status_code parse_flag(char* in, char* out_char)
     return INVALID_PARAMETER;
 }
 
+enum status_code create_outpath(char** path, char* input_path)
+{
+    if(input_path == NULL)
+        return INVALID_PARAMETER;
+    *path = (char*) malloc(sizeof(char) * strlen(input_path) + strlen("out_") + 1);
+    if(*path == NULL)
+        return ALLOC_ERROR;
+    int last_slash = -1;
+    for(int i = 0; i < strlen(input_path); i++)
+    {
+        if(input_path[i] == '\\')
+            last_slash = i;
+    }
+    if(last_slash == -1)
+    {
+        strcpy(*path, "out_");
+        strcat(*path, input_path);
+    }
+    else
+    {
+        for(int i = 0; i <= last_slash; i++)
+        {
+            (*path)[i] = input_path[i];
+        }
+        strcat(*path, "out_");
+        for(int i = last_slash + 1 + strlen("out_"); i < strlen(input_path); i++)
+        {
+            (*path)[i] = input_path[i + strlen("out_")];
+        }
+    }
+    (*path)[strlen(input_path) + strlen("out_") + 1] = '\0';
+    return OK;
+}
+
 int main(int argc, char** argv)
 {
-   // argc = 4;
-   // argv[1] = "-na";
-   // argv[2] = "input.txt";
-   //argv[3] = "output.txt";
+    argc = 3;
+    argv[1] = "-a";
+    argv[2] = "input.txt";
     enum status_code code = OK;
     printf(usage);
     if (argc < 3 || argc > 4)
@@ -226,40 +259,54 @@ int main(int argc, char** argv)
     FILE* output;
 
     char in_name[100];
-    char out_name[100];
+    char* out_name = NULL;
     //
     strcpy(in_name, argv[2]);
     //
     if (argc == 3)
     {
-        strcpy(out_name, "out_");
-        strcat(out_name, argv[2]);
+        code = create_outpath(&out_name, in_name);
+        if(code != OK)
+        {
+            printf("%s", function_base_errors[code]);
+            free(out_name);
+            return code;
+        }
     }
     else
     {
+        out_name = (char*) malloc(sizeof(char) * strlen(argv[3]));
+        if(!out_name)
+        {
+            printf("%s", function_base_errors[ALLOC_ERROR]);
+            return code;
+        }
         strcpy(out_name, argv[3]);
     }
     //
     if ((input = fopen(in_name, "r")) == NULL)
 	{
 		printf("%s", input_errors[3]);
+        free(out_name);
 		return 1;
 	}
 	if ((output = fopen(out_name, "w")) == NULL)
 	{
         fclose(input);
 		printf("%s", input_errors[3]);
+        free(out_name);
 		return 1;
 	}
     //
     char flag = '0';
-    code = parse_flag(argv[1], &flag);
+    code = parse_flag(argv[1], &flag, argc);
     if(code != OK)
     {
         fclose(input);
         fclose(output);
         printf("%s", function_base_errors[code]);
-        return 1;
+        free(out_name);
+        return code;
     }
 
     code = solve_flag(flag, input, output);
@@ -268,11 +315,12 @@ int main(int argc, char** argv)
         printf("%s", function_base_errors[code]);
         fclose(input);
         fclose(output);
-        return 1;
+        free(out_name);
+        return code;
     }
-
     fclose(input);
     fclose(output);
+    free(out_name);
     return 0;
 }
 

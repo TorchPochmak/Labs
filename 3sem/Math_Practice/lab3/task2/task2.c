@@ -620,6 +620,5 @@ int main(int argc, char** argv)
     free(v1);
     free(v2);
     free(v3);
-    getchar();
     return code;
 }

@@ -109,6 +109,8 @@ char get_char_of_digit(int a)
 }
 status_code reverse_str(char* str, char** result)
 {
+    if(str == NULL)
+        return INVALID_PARAMETER;
     int len = strlen(str);
     *result = (char*) calloc((plus(len, 1)), sizeof(char));
     if(result == NULL || *result == NULL)

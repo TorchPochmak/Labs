@@ -302,7 +302,7 @@ int main(int argc, char** argv)
     {
         show_error(error);
         free_all(2, buf, list);
-            fclose_all(2, in, out);
+        fclose_all(2, in, out);
         return error;
     }
     //SORTING

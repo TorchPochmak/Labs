@@ -7,6 +7,38 @@
 #include <stdarg.h>
 //#include <String.h>
 
+typedef enum 
+{
+    OK,
+    INVALID_PARAMETER,
+    MY_OVERFLOW,
+    DIVISION_BY_ZERO,
+    ALLOC_ERROR,
+    FILE_ERROR,
+    INPUT_ERROR,
+    UNKNOWN_ERROR,
+    RESERVED
+} status_code;
+
+const char* error_details[] =
+{
+    "OK\n",
+    "ERROR: Invalid parameter\n",
+    "ERROR: Overflow\n",
+    "ERROR: Division by zero\n",
+    "ERROR: Alloc error\n",
+    "ERROR: File error\n",
+    "ERROR: Input error\n",
+    "ERROR: Unknown...\n",
+    "ERROR: Reserved...\n"
+};
+
+int show_error(status_code code)
+{
+    printf(error_details[code]);
+    return code;
+}
+
 typedef struct 
 {
     int size;
@@ -14,7 +46,7 @@ typedef struct
 } String;
 
 //NULL if failed or NULL
-String* string_create(const char* data)
+String* string_create(const char* data, String** result)
 {
     if(data == NULL)
         return NULL;
@@ -27,7 +59,7 @@ String* string_create(const char* data)
         return NULL;
     }
     strcpy(res->data, data);
-    return res;
+    return *result = res;
 }
 //NULL if failed
 String* string_create_from(const String* str)
@@ -37,6 +69,7 @@ String* string_create_from(const String* str)
     String* res = string_create(str->data);
     return res;
 }
+
 void string_destroy(String* ptr)
 {
     if(ptr == NULL)
@@ -94,6 +127,7 @@ int string_compare(const void* str1v, const void* str2v)
     }
     return res;
 }
+
 bool string_equal(const String* str1, const String* str2)
 {
     return string_compare((void*)str1, (void*)str2) == 0 ? true : false;
@@ -109,6 +143,7 @@ void string_copy(String* from, String* to)
     to->size = from->size;
     strcpy(from->data, to->data);
 }
+
 int main()
 {
     

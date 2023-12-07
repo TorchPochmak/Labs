@@ -33,6 +33,12 @@ static const char* function_base_errors[] =
     "ERROR: Specific...\n"
 };
 
+typedef struct
+{
+    int line;
+    int index;
+} substr_found;
+
 
 int show_error(status_code code)
 {
@@ -40,7 +46,7 @@ int show_error(status_code code)
     return code;
 }
 
-status_code solve_files(char* substr, char*** result, int count, ...)
+status_code solve_files(char* substr, int** result_cnt, substr_found*** subs, int count, ...)
 {
     status_code code = OK;
     va_list argptr;
@@ -55,7 +61,6 @@ status_code solve_files(char* substr, char*** result, int count, ...)
         {
             free(result);
             free(result_file_strings);
-
         }
 
     }
@@ -65,9 +70,40 @@ status_code solve_files(char* substr, char*** result, int count, ...)
     return OK;
 }
 
-status_code solve_file(char* substr, char** result, FILE* file)
+int mystrlen(char* str)
 {
-//заебался
+    if(str == NULL)
+        return 0;
+    int i = 0;
+    while(str[i] != '\0')
+        i++;
+    return i;
+}
+
+status_code solve_file(char* substr, int* count, substr_found** result, FILE* file)
+{
+    if(file == NULL || substr == NULL)
+        return INVALID_PARAMETER;
+    int len = mystrlen(substr);
+    char* buffer = (char*) malloc(sizeof(char) * (len + 1));
+    if(buffer == NULL)
+        return ALLOC_ERROR;
+    buffer[len] = '\0';
+
+    int result_size = 0;
+    int max_size = 1;
+    *result = (substr_found*) malloc(sizeof(substr_found) * max_size);
+    if(*result == NULL)
+    {
+        free(buffer);
+        return ALLOC_ERROR;
+    }
+    char c;
+    int res
+    while ((c = getc(file)) != EOF)
+	{
+
+    }
 }
 
 int main(int argc, char** argv)

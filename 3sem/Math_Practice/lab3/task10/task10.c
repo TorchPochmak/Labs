@@ -122,7 +122,6 @@ typedef struct Node
     struct Node* parent;
     char letter;
 } Node;
-
 status_code create_node(char content, Node** out_node)
 {
     if(out_node == NULL)
@@ -137,7 +136,6 @@ status_code create_node(char content, Node** out_node)
     (*out_node)->letter = content;
     return OK;
 }
-
 status_code create_child(Node* parent, char content, Node** out_child)
 {
     status_code code = OK;
@@ -159,7 +157,6 @@ status_code create_child(Node* parent, char content, Node** out_child)
     *out_child = new_child;
     return OK;
 }
-
 void print_tree(Node* root, FILE* out, int spaces)
 {
     if(root == NULL || out == NULL)
@@ -181,6 +178,7 @@ void print_tree(Node* root, FILE* out, int spaces)
 //str is good guaranteed
 status_code create_tree(char* str, Node** root)
 {
+    bool empty_tree = false;
     status_code code = OK;
     Node* tree;
     Node* cur_node;
@@ -210,7 +208,11 @@ status_code create_tree(char* str, Node** root)
             else if(str[i] == ',')
                 mode = 0;
             else if(str[i] == ')')
+            {
+                //if(empty_tree)
                 cur_node = cur_node->parent;
+                //empty_tree = false;
+            }
             else
             {
                 if(mode == 0)
@@ -228,7 +230,12 @@ status_code create_tree(char* str, Node** root)
                 }
                 if(mode == 1)
                 {
-                    if((code = create_child(cur_node, str[i], &cur_node)) != OK)
+                    // if(str[i] == ')')
+                    // {
+                    //     empty_tree = true;
+                    //     mode = 0;
+                    // }
+                    else if((code = create_child(cur_node, str[i], &cur_node)) != OK)
                     {
                         free(str);
                         return code;
@@ -242,15 +249,19 @@ status_code create_tree(char* str, Node** root)
 
 void free_tree(Node* root)
 {
+    if(root == NULL)
+        return;
     if(root->child != NULL)
         free_tree(root->child);
     if(root->brother != NULL)
         free_tree(root->brother);
     free(root);
 }
-
 int main(int argc, char** argv)
 {
+    argc = 3;
+    argv[1] = "input1.txt";
+    argv[2] = "output";
     status_code code = OK;
     if(argc != 3)
     {
@@ -259,6 +270,11 @@ int main(int argc, char** argv)
     }
     FILE* in;
     FILE* out;
+    if(!strcmp(argv[1],argv[2]))
+    {
+        show_error(INPUT_ERROR);
+        return INPUT_ERROR;
+    }
     if((in = fopen(argv[1], "r")) == NULL)
     {
         code = FILE_ERROR;
@@ -292,8 +308,9 @@ int main(int argc, char** argv)
             free_tree(root);
             return code;
         }
+        fprintf(out, "tree:\n");
         print_tree(root, out, 0);
-        fprintf(out, "\n");
+        root = NULL;
     }
     fclose_all(2, in, out);
     free(str);

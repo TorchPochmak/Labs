@@ -244,9 +244,9 @@ enum status_code create_outpath(char** path, char* input_path)
 
 int main(int argc, char** argv)
 {
-    argc = 3;
-    argv[1] = "-a";
-    argv[2] = "input.txt";
+    // argc = 3;
+    // argv[1] = "-a";
+    // argv[2] = "input.txt";
     enum status_code code = OK;
     printf(usage);
     if (argc < 3 || argc > 4)
@@ -282,6 +282,12 @@ int main(int argc, char** argv)
             return code;
         }
         strcpy(out_name, argv[3]);
+    }
+    if(in_name == out_name)
+    {
+        printf("INPUT_ERROR");
+        free(out_name);
+        return 1;
     }
     //
     if ((input = fopen(in_name, "r")) == NULL)

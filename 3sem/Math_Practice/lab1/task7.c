@@ -16,7 +16,7 @@ enum status_code
     DIVISION_BY_ZERO,
     UNKNOWN_ERROR,
     ALLOC_ERROR,
-    RESERVED,
+    FILE_CONTENT_ERROR,
 };
 
 static const char* usage = "Usage: <input_file> <output_file>\n";
@@ -37,7 +37,7 @@ static const char* function_base_errors[] =
     "ERROR: Division by zero\n",
     "ERROR: Unknown\n",
     "ERROR: Alloc Error\n",
-    "ERROR: Specific for function\n"
+    "ERROR: File content error\n"
 };
 
 bool is_upper(char c) 
@@ -69,7 +69,6 @@ enum status_code str_to_int(char** in, int* out, int base)
 
     return OK;
 }
-
 
 enum status_code convert_base(char* input, int inputBase, int outputBase, char** result) 
 {
@@ -125,13 +124,14 @@ enum status_code convert_base(char* input, int inputBase, int outputBase, char**
 
 enum status_code function_a(FILE* in1, FILE* out)
 {
-    char* in = (char*) malloc(sizeof(char) * 2);
-    
+    char single_char[2];
+    single_char[1] = '\0';
+    single_char[0] = '0';
     bool last_written = false;
     char last_c = ' ';
     enum status_code code = OK;
     char c = ' ';
-    int counter = 1;
+    int counter = 0;
     while((c = fgetc(in1)) != EOF)
     {
         if(!is_sep(c))
@@ -139,74 +139,60 @@ enum status_code function_a(FILE* in1, FILE* out)
     }
     if (c == EOF)
         return OK;
-    
-    while ((c = fgetc(in1)) != EOF) 
+    do
     {
-        if(!is_sep(last_c) && is_sep(c))
+        if(!(is_sep(c) || isalpha(c)))
+            return FILE_CONTENT_ERROR;
+        if(is_sep(last_c) && !is_sep(c))
             counter++;
         if (counter % 10 == 0 && isalpha(c)) 
         {
-            last_written = true;
             if (is_upper(c)) 
             {
                 c = c + 32;
             }
             char* result = NULL;
-            char* in = (char*) malloc(sizeof(char) * 2);
-            if(!in)
 
-            in[0] = c;
-            in[1] = '\0';
-            code = convert_base(in, 10, 4, &result);
+            int num = (int)c;
+            char snum[4];
+            itoa(num, snum, 10);
+            code = convert_base(snum, 10, 4, &result);
             if(code != OK)
             {
-                free(in);
                 free(result);
                 return code;
             }
-            fprintf(out, "%s ", result);
-            free(in);
+            fprintf(out, "%s", result);
             free(result);
         }
         else if (counter % 2 == 0 && isalpha(c)) 
         {
-            last_written = true;
             if (is_upper(c)) 
             {
                 c = c + 32;
             }
-            fprintf(out, "%c ", c);
+            fprintf(out, "%c", c);
         }
-        else if (counter % 5 == 0)
+        else if (counter % 5 == 0 && isalpha(c))
         {
-            last_written = true;
             char* result = NULL;
-            char* in = (char*) malloc(sizeof(char) * 2);
-            in[0] = c;
-            in[1] = '\0';
-
-            code = convert_base(in, 10, 8, &result);
+            int num = (int)c;
+            char snum[4];
+            itoa(num, snum, 10);
+            code = convert_base(snum, 10, 8, &result);
             if(code != OK)
             {
-                free(in);
                 free(result);
                 return code;
             }
-            fprintf(out, "%s ", result);
-            free(in);
+            fprintf(out, "%s", result);
             free(result);
         }
-        else if(last_written && is_sep(c))
-        {
-            last_written = true;
+        if(counter != 0 && (counter % 2 == 0 || counter % 5 == 0) && !is_sep(last_c) && is_sep(c))
             fprintf(out, " ");
-        }
-        else
-        {
-            last_written = false;
-        }
         last_c = c;
     }
+    while ((c = fgetc(in1)) != EOF);
     return OK;
 }
 
@@ -355,9 +341,19 @@ int main(int argc, char** argv)
     // name flag f1 outf
     argc = 4;
     argv[1] = "-a";
-    argv[2] = "input.txt";
+    argv[2] = "task7_in1.txt";
     argv[3] = "output.txt";
-    argv[3] = "output.txt";
+    argv[3] = "task7_out.txt";
+    if(argc == 5 && !(strcmp(argv[2],argv[3]) && strcmp(argv[2],argv[4]) && strcmp(argv[3],argv[4])))
+    {
+        printf("%s", function_base_errors[INVALID_PARAMETER]);
+        return INVALID_PARAMETER;
+    }
+    if(argc == 4 && !strcmp(argv[2],argv[3]))
+    {
+        printf("%s", function_base_errors[INVALID_PARAMETER]);
+        return INVALID_PARAMETER;
+    }
     if(argc < 4)
     {
         printf("%s", input_errors[0]);

@@ -246,6 +246,7 @@ status_code str_to_int(char** in, int* out, int base)
 //--------------------------------------------------------------------------------
 //Just some more
 
+// TODO: shitty shit
 void student_free(Student stud)
 {
     free(stud.marks);
@@ -427,11 +428,12 @@ status_code students_parse(FILE* in, Student** result, int* result_count)
 
 status_code student_list_filter(Search_Param param, void* parameter, Student* input_list, int input_count, Student** result, int* result_count)
 {
+    double eps = 1e-10;
     *result_count = 0;
     
     status_code code = OK;
     Student* studs;
-    if(input_list == NULL || *result == NULL || (param != ABOVE_AVERAGE_MARK && parameter == NULL))
+    if(input_list == NULL || (param != ABOVE_AVERAGE_MARK && parameter == NULL))
         return INVALID_PARAMETER;
     if(!student_list_valid(input_list, input_count))
         return INVALID_PARAMETER;
@@ -484,7 +486,7 @@ status_code student_list_filter(Search_Param param, void* parameter, Student* in
         {
             double stud_av = 0;
             average_mark(&(input_list[i]), &stud_av);
-            if(stud_av > av_mark)
+            if(stud_av > av_mark && !(fabs(stud_av - av_mark) < eps))
                 add = true;
         }
         else
@@ -549,10 +551,18 @@ const char help[] = "Commands:\n1) srch_id srch_surname srch_name srch_group\n2)
 
 int main(int argc, char** argv)
 {
+    // argc = 3;
+    // argv[1] = "in1.txt";
+    // argv[2] = "out.txt";
     status_code code = OK;
     if(argc != 3)
     {
         printf(usage);
+        return INPUT_ERROR;
+    }
+    if(!strcmp(argv[1],argv[2]))
+    {
+        show_error(INPUT_ERROR);
         return INPUT_ERROR;
     }
     FILE* in = fopen(argv[1], "r");
@@ -664,6 +674,7 @@ int main(int argc, char** argv)
         }
         else if(!strcmp(buf, "fprint_above_av"))
         {
+            print_studlist(list, list_cnt);
             double average = 0;
             for(int i = 0; i < list_cnt; i++)
             {
@@ -684,6 +695,7 @@ int main(int argc, char** argv)
                         code = code ? code : average_mark(&filter_result[i], &result);
                         fprintf(out, "Found: %s %s, average mark: %.5lf\n", filter_result[i].surname, filter_result[i].name, result);
                     }
+
                 }
             }
         }
@@ -722,6 +734,7 @@ int main(int argc, char** argv)
             printf("Unknown command. Use \"help\"\n");
             printf("Or print \"exit\" to close program\n");
         }
+        fflush(out);
     }
     if(code != OK)
     {

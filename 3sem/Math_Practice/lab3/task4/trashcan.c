@@ -9,7 +9,8 @@
 //does not work
 void foo1(char* res)
 {
-    res = "foo1 after";
+    //res = "foo1 after";
+    res[1] = 56;
 }
 //works
 void foo2(char** res)
@@ -58,10 +59,31 @@ void foo7(int** res)
     int ok = 5;
     *res = &ok;
 }
+
+typedef struct A
+{
+    int id;
+} A;
+
+void getA(A* result)
+{
+    A ff;
+    ff.id = 10;
+    *result = ff;
+}
 int main()
 {
+    A okay;
+    getA(&okay);
+    int g = okay.id;
+
+
+
     int i = 2;
-    char* res = "foo1 before";
+    char* res = (char*) malloc(sizeof(char) * 3);
+    res[0] = 'g';
+    res[1] = 'h';
+    res[2] = '\0';
     printf("%s\n", res);
     foo1(res);
     printf("%s\n", res);
@@ -104,6 +126,8 @@ int main()
     foo7(&a);
     printf("%d\n", a[1]);
     printf("\n");
+
+    int f = strcmp("", "");
 }
 
 

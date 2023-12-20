@@ -122,6 +122,7 @@ typedef struct Node
     struct Node* parent;
     char letter;
 } Node;
+
 status_code create_node(char content, Node** out_node)
 {
     if(out_node == NULL)
@@ -136,6 +137,7 @@ status_code create_node(char content, Node** out_node)
     (*out_node)->letter = content;
     return OK;
 }
+
 status_code create_child(Node* parent, char content, Node** out_child)
 {
     status_code code = OK;
@@ -157,6 +159,7 @@ status_code create_child(Node* parent, char content, Node** out_child)
     *out_child = new_child;
     return OK;
 }
+
 void print_tree(Node* root, FILE* out, int spaces)
 {
     if(root == NULL || out == NULL)
@@ -204,14 +207,17 @@ status_code create_tree(char* str, Node** root)
         else
         {
             if(str[i] == '(')
+            {
                 mode = 1;
+                empty_tree = true;
+            }
             else if(str[i] == ',')
                 mode = 0;
             else if(str[i] == ')')
             {
-                //if(empty_tree)
-                cur_node = cur_node->parent;
-                //empty_tree = false;
+                if(!empty_tree)
+                    cur_node = cur_node->parent;
+                empty_tree = false;
             }
             else
             {
@@ -230,13 +236,9 @@ status_code create_tree(char* str, Node** root)
                 }
                 if(mode == 1)
                 {
-                    // if(str[i] == ')')
-                    // {
-                    //     empty_tree = true;
-                    //     mode = 0;
-                    // }
-                    else if((code = create_child(cur_node, str[i], &cur_node)) != OK)
+                    if((code = create_child(cur_node, str[i], &cur_node)) != OK)
                     {
+                        empty_tree = false;
                         free(str);
                         return code;
                     }
@@ -259,9 +261,6 @@ void free_tree(Node* root)
 }
 int main(int argc, char** argv)
 {
-    argc = 3;
-    argv[1] = "input1.txt";
-    argv[2] = "output";
     status_code code = OK;
     if(argc != 3)
     {
@@ -299,6 +298,11 @@ int main(int argc, char** argv)
             free(str);
             free_tree(root);
             return code;
+        }
+        if(!strcmp(str, "()"))
+        {
+            fprintf(out, "tree:\n");
+            continue;
         }
         if((code = create_tree(str, &root)) != OK)
         {

@@ -1,5 +1,5 @@
 first SECOND
 third   forth
-F sixth secen eight 
+F sixth seven eight 
     nine 
         ten

@@ -269,10 +269,10 @@ const char help[] = "Commands:\n2) sort_asc sort_dsc\n";
 int main(int argc, char** argv)
 {
     printf(help);
-    // argc = 4;
-    // argv[1] = "in1.txt";
-    // argv[2] = "-d";
-    // argv[3] = "out1.txt";
+    argc = 4;
+    argv[1] = "in1.txt";
+    argv[2] = "-d";
+    argv[3] = "out1.txt";
     if(argc != 4)
     {
         show_error(INPUT_ERROR);

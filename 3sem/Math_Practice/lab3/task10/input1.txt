@@ -1,4 +1,6 @@
 A (B (E (G, T, R (W, Z)), F (L, M)), C)
 
-a (b (c, d))
-h
+a (b (c (), d))
+h (a (), C (f ()))
+g (h (f (), l))
+a ()

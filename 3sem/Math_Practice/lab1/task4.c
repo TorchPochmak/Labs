@@ -212,7 +212,7 @@ enum status_code create_outpath(char** path, char* input_path)
 {
     if(input_path == NULL)
         return INVALID_PARAMETER;
-    *path = (char*) malloc(sizeof(char) * strlen(input_path) + strlen("out_") + 1);
+    *path = (char*) malloc(sizeof(char) * (strlen(input_path) + 4 + 1));
     if(*path == NULL)
         return ALLOC_ERROR;
     int last_slash = -1;
@@ -232,20 +232,22 @@ enum status_code create_outpath(char** path, char* input_path)
         {
             (*path)[i] = input_path[i];
         }
-        strcat(*path, "out_");
-        for(int i = last_slash + 1 + strlen("out_"); i < strlen(input_path); i++)
+        char* ou = "out_";
+        for(int i = last_slash + 1; i < last_slash + 1 + strlen("out_"); i++)
+             (*path)[i] = ou[i - last_slash - 1];
+        for(int i = last_slash + 1 + strlen("out_"); i < strlen(input_path) + strlen("_out"); i++)
         {
-            (*path)[i] = input_path[i + strlen("out_")];
+            (*path)[i] = input_path[i - strlen("out_")];
         }
     }
-    (*path)[strlen(input_path) + strlen("out_") + 1] = '\0';
+    (*path)[strlen(input_path) + strlen("out_")] = '\0';
     return OK;
 }
 
 int main(int argc, char** argv)
 {
     // argc = 3;
-    // argv[1] = "-a";
+    // argv[1] = "-i";
     // argv[2] = "input.txt";
     enum status_code code = OK;
     printf(usage);
@@ -258,7 +260,7 @@ int main(int argc, char** argv)
     FILE* input;
     FILE* output;
 
-    char in_name[100];
+    char in_name[1000];
     char* out_name = NULL;
     //
     strcpy(in_name, argv[2]);

@@ -339,11 +339,11 @@ int main(int argc, char** argv)
     //a - 4 args;
     // name flag f1 f2 outf
     // name flag f1 outf
-    argc = 4;
-    argv[1] = "-a";
-    argv[2] = "task7_in1.txt";
-    argv[3] = "output.txt";
-    argv[3] = "task7_out.txt";
+    // argc = 4;
+    // argv[1] = "-a";
+    // argv[2] = "task7_in1.txt";
+    // argv[3] = "output.txt";
+    // argv[3] = "task7_out.txt";
     if(argc == 5 && !(strcmp(argv[2],argv[3]) && strcmp(argv[2],argv[4]) && strcmp(argv[3],argv[4])))
     {
         printf("%s", function_base_errors[INVALID_PARAMETER]);

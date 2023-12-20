@@ -481,12 +481,34 @@ status_code sub_string(String_ptr source, int begin, int end, String_ptr result)
     return error;
 }
 
+bool check_adress_index(String_ptr str)
+{
+    if(str == NULL || str->data == NULL || strlen(str->data) != 6)
+        return false;
+    for(int i = 0; i < str->size; i++)
+    {
+        if(!is_digit(str->data[i], 10))
+            return false;
+    }
+    return true;
+}
 
+bool check_weight(double x)
+{
+    return x > 0 && abs(x - 1e-10) > 0; 
+}
 
-
-
-
-
+bool check_mail_id(String_ptr str)
+{
+    if(str == NULL || str->data == NULL || strlen(str->data) != 14)
+        return false;
+    for(int i = 0; i < str->size; i++)
+    {
+        if(!is_digit(str->data[i], 10))
+            return false;
+    }
+    return true;
+}
 
 
 
@@ -589,7 +611,7 @@ typedef struct Mail
 typedef struct Mail_Arr
 {
     Mail* data;
-    bool* was_sent;
+    int* was_sent;
     int size;
     int max_size;
 } Mail_Arr, *Mail_Arr_ptr;
@@ -815,14 +837,14 @@ status_code create_mail_arr(Mail_Arr_ptr result)
     res.data = (Mail*) malloc(sizeof(Mail) * 2);
     if(!res.data)
         return ALLOC_ERROR;
-    res.was_sent = (bool*) malloc(sizeof(bool) * 2);
+    res.was_sent = (int*) malloc(sizeof(int) * 2);
     if(!res.was_sent)
     {
         free(res.data);
         return ALLOC_ERROR;
     }
     for(int i = 0; i < 2; i++)
-        res.was_sent[i] = false;
+        res.was_sent[i] = 0;
     res.max_size = 2;
     res.size = 0;
     *result = res;
@@ -842,19 +864,21 @@ status_code mail_arr_push(Mail_Arr_ptr arr, Mail mail)
             return ALLOC_ERROR;
         }
         arr->data = copyto_str;
-
-        bool* cop_to = (bool*) realloc(arr->was_sent, arr->max_size * sizeof(bool));
-        if(cop_to == NULL)
+        
+        int* cop_to = arr->was_sent;
+        arr->was_sent = (int*) realloc(arr->was_sent, arr->max_size * sizeof(int));
+        if(arr->was_sent == NULL)
         {
+            free(cop_to);
             free_mail_arr(arr);
             return ALLOC_ERROR;
         }
         for(int i = arr->size; i < arr->max_size; i++)
-            cop_to[i] = false;
+            cop_to[i] = 0;
         arr->was_sent = cop_to;
     }
     arr->data[arr->size - 1] = mail;
-    arr->was_sent[arr->size - 1] = false;
+    arr->was_sent[arr->size - 1] = 0;
     qsort(arr->data, arr->size, sizeof(Mail), mail_cmp);
     return OK;
 }
@@ -929,7 +953,7 @@ void print_received(Mail_Arr_ptr arr)
     {
         if(arr->was_sent[i])
         {
-            printf("Mail N%d: mail_id = %s, post_index = %s, create_time = %s", 
+            printf("Mail N%d: mail_id = %s, post_index = %s, create_time = %s\n", 
             i+1, arr->data[i].mail_id.data, arr->data[i].address.index.data, arr->data[i].time_created.data);
             found = true;
         }
@@ -967,7 +991,6 @@ status_code create_address(Address_ptr adr)
         return INVALID_PARAMETER;
     }
     address.city = buffer;
-    printf("%d", strlen(address.city.data));
 
     printf("Street: ");
     error = string_readline(&buffer);
@@ -1040,7 +1063,7 @@ status_code create_address(Address_ptr adr)
         string_destroy(&buffer);
         return error;
     }
-    if(!strcmp(buffer.data, ""))
+    if(!strcmp(buffer.data, "") || !check_adress_index(&buffer))
     {
         string_destroy(&buffer);
         return INVALID_PARAMETER;
@@ -1068,9 +1091,10 @@ status_code create_mail(Mail_ptr result)
     error = string_readline(&buffer);
     double outd;
     error = error ? error : str_to_d(&buffer, &outd, 10);
-    if(error || outd < 0)
+
+    if(error || !check_weight(outd))
     {
-        if (outd < 0) 
+        if (!check_weight(outd)) 
             error = INVALID_PARAMETER;
         free_mail(&mail);
         string_destroy(&buffer);
@@ -1092,6 +1116,11 @@ status_code create_mail(Mail_ptr result)
         return error;
     }
     if(!strcmp(buffer.data, ""))
+    {
+        string_destroy(&buffer);
+        return INVALID_PARAMETER;
+    }
+    if(!check_mail_id(&buffer))
     {
         string_destroy(&buffer);
         return INVALID_PARAMETER;
@@ -1190,7 +1219,6 @@ int main(int argc, char** argv)
                 error = error ? error : add_mail(&post, &mail);
                 if(error)
                 {
-                    free_mail(&mail);
                     break;
                 }
                 printf("Mail was successfully added\n");
@@ -1276,9 +1304,11 @@ int main(int argc, char** argv)
             }
         }
     }
-
+    show_error(error);
     free_post(&post);
     if (!error)
         string_destroy(&buff);
+    else
+        show_error(error);
     return error;
 }

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <limits.h>
 //#include "my_lib.h"
 
 void print_int_arr(int* arr, int count, char* sep)
@@ -75,8 +76,6 @@ int gcd(int a, int b)
     return a; 
 } 
 
-
-
 status_code solve_for_one(int base, int* result, double num) {
     if (base < 2) {
         return INVALID_PARAMETER;
@@ -84,7 +83,7 @@ status_code solve_for_one(int base, int* result, double num) {
 
     //найдем представление в виде числителя и знаменателя
     int up, down = 1;
-    while (abs(num - floor(num)) > EPS) {
+    while (fabs(num - floor(num)) > EPS) {
         num *= 10;
         down *= 10;
         if(abs(down) > INT_MAX / 10 || abs(num) > INT_MAX / 10)
@@ -100,23 +99,15 @@ status_code solve_for_one(int base, int* result, double num) {
     }
     //условие - down если основание не делится на простой делитель знаменателя, то все плохо 
     //поиск до корня
-    //проверка на 2
-    while(down % 2 == 0)
-    {
-        if(base % 2 == 0)
-        {
-            *result = false;
-            return OK;
-        }
-        down /= 2;
-    }
-    for(int i = 3; i <= down; i += 2)
+    for(int i = 2; i <= down; i++)
     {
         if(down % i == 0 && base % i != 0)
         {
             *result = false;
             return OK;
         }
+        while(down % i == 0)
+            down /= i;
     }
     *result = true;
     return OK; 
@@ -151,7 +142,7 @@ int main() {
 
     status_code code = OK;
     int* res;
-    if( (code = solve(3, &res, 3, 0.1, 0.2, 0.3)) != OK)
+    if( (code = solve(2, &res, 3, 2.0, 0.5, 0.3)) != OK)
     {
         free(res);
         return show_error(code);

@@ -4,7 +4,7 @@
 #include <semaphore.h>
 
 
-//#define SYNC
+#define SYNC
 #define N 5
 #define LEFT (i % N)
 #define RIGHT ((i + 1) % N)

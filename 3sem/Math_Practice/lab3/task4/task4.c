@@ -585,8 +585,6 @@ bool check_mail_id(String_ptr str)
 
 
 //#include "my_lib.h"
-
-//оценка в пределах {1,2,3,4,5}
 typedef unsigned long long ull;
 
 typedef struct Address

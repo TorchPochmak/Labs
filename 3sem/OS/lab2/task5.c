@@ -84,7 +84,7 @@ void* man_wants_to_enter(void* arg)
     return NULL;
 }
 
-int main(int argc, char *argv[]) 
+int main(int argc, char** argv) 
 {
 
     if (argc < 2) {

@@ -107,8 +107,8 @@ int is_sep(char c)
 
 int main(int argc, char** argv)
 {
-    argc = 2;
-    argv[1] = "t43";
+    //argc = 2;
+    //argv[1] = "t43";
     if(argc != 2)
     {
         show_error(INPUT_ERROR);

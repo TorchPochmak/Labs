@@ -5,7 +5,7 @@
 int main()
 {
 	fork();
-    printf("Hi\n");
+    printf("Hi");
     fork();
-    printf("Hi\n");
+    printf("Hi");
 }

@@ -1,0 +1,16 @@
+ERROR: Division by zero
+ in 0
+ERROR: Invalid brackets
+ in 3
+ERROR: Negative pow
+ in 4
+ERROR: Invalid brackets
+ in 6
+ERROR: Invalid brackets
+ in 7
+ERROR: Extra operand or operator
+ in 9
+ERROR: Overflow
+ in 10
+ERROR: Overflow
+ in 11

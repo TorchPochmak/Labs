@@ -226,7 +226,7 @@ char* substr(char* str, int begin_index, int end_index)
 
 int oversprintf(char* buf, char* format, ...) 
 {
-
+    buf[0] = '\0';
     int end_ind = 0;
     int begin_ind = 0;
     bool strange_format = true;
@@ -292,11 +292,11 @@ int oversprintf(char* buf, char* format, ...)
                 int result_num = 0;
                 char* arg1 = va_arg(args, char*);
                 int arg2 = va_arg(args, int);
-                if(arg1[0] == '\0' || (!isdigit(arg1[0]) && !(arg1[0] >= 'a' && arg1[0] <= 'z')))
+                if(arg1[0] == '\0' || (!isdigit(arg1[0]) && !(arg1[0] >= 'A' && arg1[0] <= 'Z')))
                     error = INVALID_PARAMETER;
                 for(int i = 1; i < strlen(arg1); i++)
                 {
-                    if(!isdigit(arg1[i]) && !(arg1[i] >= 'a' && arg1[i] <= 'z'))
+                    if(!isdigit(arg1[i]) && !(arg1[i] >= 'A' && arg1[i] <= 'Z'))
                         error = INVALID_PARAMETER;
                 }
                 if(error)
@@ -349,12 +349,14 @@ int oversprintf(char* buf, char* format, ...)
                 if(error)
                 {
                     free(result);
+                    buf[success_read] = '\0';
                     return success_read;
                 }
                 char buffer[100];
                 int vr = vsprintf(buffer, result, args);
+                buf[success_read] = '\0';
                 success_read = vr < 0 ? success_read : vr + success_read;
-                i += strlen(result);;
+                i += strlen(result);
                 strcat(buf, buffer);
             }
             else 
@@ -362,12 +364,18 @@ int oversprintf(char* buf, char* format, ...)
                 if(error)
                 {
                     free(result);
+                    buf[success_read] = '\0';
                     return success_read;
                 }
-                char buffer[100];
-                success_read += sprintf(buffer, "%s", result);
+                buf[success_read] = '\0';
+                if(result == NULL)
+                {
+                    buf[success_read] = '\0';
+                    return success_read;
+                }
+                success_read += strlen(result);
+                strcat(buf, result);
                 i += 2;
-                strcat(buf, buffer);
             }
             free(result);
             result = NULL;
@@ -377,6 +385,7 @@ int oversprintf(char* buf, char* format, ...)
             buf[success_read++] = format[i];
         }
     }
+    buf[success_read] = '\0';
     va_end(args);
     return success_read;
 }
@@ -448,11 +457,11 @@ int overfprintf(FILE* file, char* format, ...)
                 int result_num = 0;
                 char* arg1 = va_arg(args, char*);
                 int arg2 = va_arg(args, int);
-                if(arg1[0] == '\0' || (!isdigit(arg1[0]) && !(arg1[0] >= 'a' && arg1[0] <= 'z')))
+                if(arg1[0] == '\0' || (!isdigit(arg1[0]) && !(arg1[0] >= 'A' && arg1[0] <= 'Z')))
                     error = INVALID_PARAMETER;
                 for(int i = 1; i < strlen(arg1); i++)
                 {
-                    if(!isdigit(arg1[i]) && !(arg1[i] >= 'a' && arg1[i] <= 'z'))
+                    if(!isdigit(arg1[i]) && !(arg1[i] >= 'A' && arg1[i] <= 'Z'))
                         error = INVALID_PARAMETER;
                 }
                 if(error)
@@ -507,9 +516,14 @@ int overfprintf(FILE* file, char* format, ...)
                     free(result);
                     return success_read;
                 }
-                int vr = vfprintf(file, result, args);
+                char buffer[100];
+                int vr = vsprintf(buffer, result, args);
                 success_read = vr < 0 ? success_read : vr + success_read;
-                i += strlen(result) - 1;
+                i += strlen(result);
+                for(int i = 0; i < strlen(buffer); i++)
+                {
+                    fputc(buffer[i], file);
+                }
             }
             else 
             {
@@ -518,7 +532,15 @@ int overfprintf(FILE* file, char* format, ...)
                     free(result);
                     return success_read;
                 }
-                success_read += fprintf(file, "%s", result);
+                if(result == NULL)
+                {
+                    return success_read;
+                }
+                for(int i = 0; i < strlen(result); i++)
+                {
+                    fputc(result[i], file);
+                }
+                success_read += strlen(result);
                 i += 2;
             }
             free(result);
@@ -526,10 +548,8 @@ int overfprintf(FILE* file, char* format, ...)
         } 
         else 
         {
-            if (fputc(format[i], file) != EOF) 
-            {
-                success_read++;
-            }
+            fputc(format[i], file);
+            success_read++;
         }
     }
     va_end(args);
@@ -539,5 +559,85 @@ int overfprintf(FILE* file, char* format, ...)
 
 int main()
 {
+    char buff[256];
+    int count;
+
+    printf("\t\tTest 1\n");
+    count = oversprintf(buff, "%Ro", 3888);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 2\n");
+    count = oversprintf(buff, "over %Ro", 6);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 3\n");
+    count = oversprintf(buff, "over %Roover", 567);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 4\n");
+    count = oversprintf(buff, "over %Roover", 100000000);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 5\n");
+    count = oversprintf(buff, "over %'.2f pupupu %Ro", 1234567.89, 5);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 6\n");
+    count = oversprintf(buff, "over %", 100000000);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 7\n");
+    count = oversprintf(buff, "over %Cv", 123, 2);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 8\n");
+    count = oversprintf(buff, "over %Cv", -123, 16);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 9\n");
+    count = oversprintf(buff, "over %CV", 123, 2);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 10\n");
+    count = oversprintf(buff, "over %CV", -123, 16);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 11\n");
+    count = oversprintf(buff, "over %to", "1111011", 2);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 12\n");
+    count = oversprintf(buff, "over %to", "-7b", 16);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 13\n");
+    count = oversprintf(buff, "over %TO", "-7B", -1);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 14\n");
+    int k;
+    count = oversprintf(buff, "over %p over", &k);
+    printf("format: 'over %%n over', '&k'\n");
+    printf("str: '%s' count:%d int k = %d\n\n", buff, count, k);
+
+    printf("\t\tTest 15\n");
+    count = oversprintf(buff, "%mi", -123);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 16\n");
+    count = oversprintf(buff, "%mu", 123);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 17\n");
+    count = oversprintf(buff, "%md", 0.1);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 18\n");
+    count = oversprintf(buff, "%mf", -1.2);
+    printf("str: '%s' count:%d\n\n", buff, count);
+
+    printf("\t\tTest 19\n");
+    count = oversprintf(buff, "over %TO", "-7b", -1);
+    printf("str: '%s' count:%d\n\n", buff, count);
     return 0;
 }

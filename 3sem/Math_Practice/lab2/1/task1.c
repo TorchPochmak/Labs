@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <errno.h>
 //#include "my_lib.h"
 
 typedef enum 
@@ -244,7 +245,6 @@ status_code solve_c(int argc, char** argv, char** result)
     (*result)[result_index] = '\0';
     return OK;
 }
-
 
 status_code solve_flags(int argc, char** argv)
 {

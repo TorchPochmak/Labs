@@ -14,3 +14,7 @@ ERROR: Overflow
  in 10
 ERROR: Overflow
  in 11
+ERROR: Extra operand or operator
+ in 12
+ERROR: Extra operand or operator
+ in 13

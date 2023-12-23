@@ -580,4 +580,9 @@ int main()
     printf("Substr...%d %d %s\n", 0, 100, s1.data);
     error = sub_string(&s1, 0, 100, &s3);
     printf("Error: %d, result: %s\n", error, s3.data);
+
+    string_destroy(&s1);
+    string_destroy(&s2);
+    string_destroy(&s3);
+    string_destroy(&s4);
 }

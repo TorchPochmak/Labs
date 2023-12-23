@@ -285,7 +285,7 @@ int main(int argc, char** argv)
         }
         strcpy(out_name, argv[3]);
     }
-    if(in_name == out_name)
+    if(!strcmp(in_name,out_name))
     {
         printf("INPUT_ERROR");
         free(out_name);

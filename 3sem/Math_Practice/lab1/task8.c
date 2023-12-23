@@ -283,7 +283,11 @@ int main(int argc, char** argv)
         printf(input_errors[1]);
         return 1;
     }
-
+    if(!strcmp(argv[1], argv[2]))
+    {
+        printf("%s", input_errors[3]);
+        return 1;
+    }
     FILE* input = NULL;
     FILE* output = NULL;
 	
@@ -298,6 +302,7 @@ int main(int argc, char** argv)
 		printf("%s", input_errors[3]);
 		return 1;
 	}
+    
     enum status_code code = solve(input, output);
 
     if(code != OK)

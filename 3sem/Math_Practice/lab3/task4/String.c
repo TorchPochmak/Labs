@@ -5,8 +5,41 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <time.h>
 #include <errno.h>
-#include "String.h"
+//#include "String.h"
+
+typedef enum 
+{
+    OK,
+    INVALID_PARAMETER,
+    MY_OVERFLOW,
+    DIVISION_BY_ZERO,
+    ALLOC_ERROR,
+    FILE_ERROR,
+    INPUT_ERROR,
+    UNKNOWN_ERROR,
+    RESERVED
+} status_code;
+
+const char* error_details[] =
+{
+    "OK\n",
+    "ERROR: Invalid parameter\n",
+    "ERROR: Overflow\n",
+    "ERROR: Division by zero\n",
+    "ERROR: Alloc error\n",
+    "ERROR: File error\n",
+    "ERROR: Input error\n",
+    "ERROR: Unknown...\n",
+    "ERROR: Reserved...\n"
+};
+
+typedef struct 
+{
+    int size;
+    char* data;
+} String, *String_ptr;
 
 int show_error(status_code code)
 {
@@ -16,9 +49,14 @@ int show_error(status_code code)
 
 status_code string_create(const char* data, String_ptr result)
 {
-    if(data == NULL)
-        return INVALID_PARAMETER;
     String res;
+    if(data == NULL)
+    {
+        res.size = 0;
+        res.data = NULL;
+        *result = res;
+        return OK;
+    }
     res.size = strlen(data);
     res.data = (char*) malloc(sizeof(char) * (res.size + 1));
     if(!(res.data))
@@ -28,27 +66,33 @@ status_code string_create(const char* data, String_ptr result)
     return OK;
 }
 
-status_code string_create_from(const String_ptr str, String_ptr result)
+//dynamic
+status_code copy_to_dynamic(const String_ptr str, String_ptr* result)
 {
+    String_ptr res = (String_ptr) malloc(sizeof(String));
+    if(!res)
+        return ALLOC_ERROR;
     if(str == NULL)
         return INVALID_PARAMETER;
-    String res;
-    status_code error = string_create(str->data, &res);
+    res->data = str->data;
+    res->size = str->size;
     *result = res;
-    return error;
+    return OK;
 }
 
 void string_destroy(String_ptr ptr)
 {
     if(ptr == NULL)
         return;
-    free(ptr->data); ptr->data = NULL;
+    if(ptr->data != NULL)
+        free(ptr->data); 
+    ptr->data = NULL;
     ptr = NULL;
 }
 
 status_code string_concat(const String_ptr str1, const String_ptr str2, String_ptr result)
 {
-    if(str1 == NULL || str2 == NULL)
+    if(str1 == NULL || str2 == NULL || str1->data == NULL || str2->data == NULL)
         return INVALID_PARAMETER;
     String res;
     int n1 = str1->size;
@@ -77,7 +121,7 @@ int string_compare(const void* str1v, const void* str2v)
 {
     String* str1 = (String*) str1v;
     String* str2 = (String*) str2v;
-    if(str1 == NULL && str2 == NULL)
+    if(str1 == NULL && str2 == NULL || (str1->data == NULL && str2->data == NULL)) 
         return 0;
     if(str1 == NULL || str2 == NULL || str1->data == NULL || str2->data == NULL)
         return 1;
@@ -86,7 +130,7 @@ int string_compare(const void* str1v, const void* str2v)
     if(res == 0)
     {
         int i = 0;
-        while(str1->data[i] == str2->data[i] && i != str1->size)
+        while(i != str1->size && str1->data[i] == str2->data[i])
             i++;
         if(i == str1->size)
             return 0;
@@ -107,6 +151,12 @@ status_code string_copy(String_ptr from_res, String_ptr to_res)
     {
         return INVALID_PARAMETER; 
     }
+    if(from_res->data == NULL)
+    {
+        to.size = 0;
+        to.data = NULL;
+        *to_res = to;
+    }
     to.size = from_res->size;
     to.data = (char*) malloc(sizeof(char) * (to.size +1));
     if(!to.data)
@@ -116,6 +166,7 @@ status_code string_copy(String_ptr from_res, String_ptr to_res)
         to.data[i] = from_res->data[i];
     }
     to.data[to.size] = '\0';
+    *to_res = to;
     return OK;
 }
 
@@ -141,7 +192,7 @@ status_code string_readline(String_ptr res)
             max_size *= 2;
             if (max_size > MAX_INPUT_SIZE)
                 return ALLOC_ERROR;
-            char* copyto_str = (char*) realloc(result, max_size * sizeof(char));
+            char* copyto_str = (char*) realloc(result, max_size);
             if (copyto_str == NULL)
             {
                 free(result);
@@ -199,7 +250,7 @@ status_code string_readline_file(String_ptr res, FILE* in)
                 free(result);
                 return ALLOC_ERROR;
             }
-            char* copyto_str = (char*) realloc(result, max_size * sizeof(char));
+            char* copyto_str = (char*) realloc(result, max_size);
             if (copyto_str == NULL)
             {
                 free(result);
@@ -275,7 +326,7 @@ status_code string_read_word(String_ptr res)
             max_size *= 2;
             if (max_size > MAX_INPUT_SIZE)
                 return ALLOC_ERROR;
-            char* copyto_str = (char*) realloc(result, max_size * sizeof(char));
+            char* copyto_str = (char*) realloc(result, max_size);
             if (copyto_str == NULL)
             {
                 free(result);
@@ -331,7 +382,7 @@ status_code string_read_word_file(String_ptr res, FILE* in)
             max_size *= 2;
             if (max_size > MAX_INPUT_SIZE)
                 return ALLOC_ERROR;
-            char* copyto_str = (char*) realloc(result, max_size * sizeof(char));
+            char* copyto_str = (char*) realloc(result, max_size);
             if (copyto_str == NULL)
             {
                 free(result);
@@ -433,9 +484,13 @@ status_code str_to_d(String_ptr in, double* out, int base)
 //[begin;end)
 status_code sub_string(String_ptr source, int begin, int end, String_ptr result)
 {
+    if(source == NULL || source->data == NULL)
+        return INVALID_PARAMETER;
     if(begin < 0 || end > source->size)
         return INVALID_PARAMETER;
     char* data = (char*) malloc(sizeof(char) * (end - begin + 1));
+    if(!data)
+        return ALLOC_ERROR;
     for(int i = begin; i < end; i++)
     {
         data[i - begin] = source->data[i];
@@ -446,28 +501,83 @@ status_code sub_string(String_ptr source, int begin, int end, String_ptr result)
     return error;
 }
 
-// int main()
-// {
-//     FILE* f = fopen("test", "r");
-//     status_code error = OK;
-//     String str;
-//     double res;
-//     int i = 0;
-//     while(!error)
-//     {
-//         error = string_read_word_file(&str, f);
-//         error = error ? error : str_to_d(&str, &res, 10);
-//         if(error)
-//             show_error(error);
-//         else
-//             printf("%lf\n", res);
-//         error = OK;
-//         if(str.data == NULL)
-//             break;
-//         printf("%d)%s\n", i, str.data);
-//         i++;
-//         string_destroy(&str);
-//     }
-//     string_destroy(&str);
-//     fclose(f);
-// }
+int main()
+{
+    String s1, s2, s3;
+    String s4;
+    string_create("abc", &s1);
+    string_create(NULL, &s2);
+    string_create("def", &s3);
+    string_create("good", &s4);
+    //
+    printf("%d\n", string_equal(&s1, &s2));
+    printf("%d\n", string_equal(&s2, &s3));
+    printf("%d\n", string_equal(&s1, &s3));
+
+    printf("%d\n", string_equal(&s1, &s1));
+    printf("%d\n", string_equal(&s2, &s2));
+    printf("%d\n", string_equal(&s3, &s3));
+    //
+    status_code error = OK;
+    printf("Concatenating...%s %s\n", s1.data, s2.data);
+    error = string_concat(&s1, &s2, &s4);
+    printf("Error: %d, result: %s\n", error, s4.data);
+    //
+    error = OK;
+    printf("Concatenating...%s %s\n", s1.data, s3.data);
+    error = string_concat(&s1, &s3, &s4);
+    printf("Error: %d, result: %s\n", error, s4.data);
+    //
+    error = OK;
+    printf("Copying...%s\n", s1.data);
+    error = string_copy(&s1, &s4);
+    printf("Error: %d, result: %s\n", error, s4.data);
+    //
+    error = OK;
+    printf("Copying null...%s\n", s4.data);
+    error = string_copy(&s4, &s2);
+    printf("Error: %d, result: %s\n", error, s2.data);
+    //
+    String null_str;
+    string_create(NULL, &null_str);
+    error = OK;
+    printf("Copying...%s\n", null_str.data);
+    error = string_copy(&null_str, &s4);
+    printf("Error: %d, result: %s\n", error, s4.data);
+    //
+    error = OK;
+    string_destroy(&s1);
+    string_destroy(&s3);
+    string_create(NULL, &s3);
+    string_create("abcdefgh", &s1);
+    printf("Substr...%d %d %s\n", 0, 3, s1.data);
+    error = sub_string(&s1, 0, 3, &s3);
+    printf("Error: %d, result: %s\n", error, s3.data);
+    //
+    error = OK;
+    string_destroy(&s1);
+    string_destroy(&s3);
+    string_create(NULL, &s3);
+    string_create("abcdefgh", &s1);
+    printf("Substr...%d %d %s\n", 0, 0, s1.data);
+    error = sub_string(&s1, 0, 0, &s3);
+    printf("Error: %d, result: %s\n", error, s3.data);
+    //
+    error = OK;
+    string_destroy(&s1);
+    string_destroy(&s3);
+    string_create(NULL, &s3);
+    string_create("abcdefgh", &s1);
+    printf("Substr...%d %d %s\n", 0, 1, s1.data);
+    error = sub_string(&s1, 0, 1, &s3);
+    printf("Error: %d, result: %s\n", error, s3.data);
+    //
+    error = OK;
+    string_destroy(&s1);
+    string_destroy(&s3);
+    string_create(NULL, &s3);
+    string_create("abcdefgh", &s1);
+    printf("Substr...%d %d %s\n", 0, 100, s1.data);
+    error = sub_string(&s1, 0, 100, &s3);
+    printf("Error: %d, result: %s\n", error, s3.data);
+}

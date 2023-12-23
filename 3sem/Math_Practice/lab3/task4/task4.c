@@ -49,9 +49,14 @@ int show_error(status_code code)
 
 status_code string_create(const char* data, String_ptr result)
 {
-    if(data == NULL)
-        return INVALID_PARAMETER;
     String res;
+    if(data == NULL)
+    {
+        res.size = 0;
+        res.data = NULL;
+        *result = res;
+        return OK;
+    }
     res.size = strlen(data);
     res.data = (char*) malloc(sizeof(char) * (res.size + 1));
     if(!(res.data))
@@ -61,14 +66,18 @@ status_code string_create(const char* data, String_ptr result)
     return OK;
 }
 
-status_code string_create_from(const String_ptr str, String_ptr result)
+//dynamic
+status_code copy_to_dynamic(const String_ptr str, String_ptr* result)
 {
+    String_ptr res = (String_ptr) malloc(sizeof(String));
+    if(!res)
+        return ALLOC_ERROR;
     if(str == NULL)
         return INVALID_PARAMETER;
-    String res;
-    status_code error = string_create(str->data, &res);
+    res->data = str->data;
+    res->size = str->size;
     *result = res;
-    return error;
+    return OK;
 }
 
 void string_destroy(String_ptr ptr)
@@ -83,7 +92,7 @@ void string_destroy(String_ptr ptr)
 
 status_code string_concat(const String_ptr str1, const String_ptr str2, String_ptr result)
 {
-    if(str1 == NULL || str2 == NULL)
+    if(str1 == NULL || str2 == NULL || str1->data == NULL || str2->data == NULL)
         return INVALID_PARAMETER;
     String res;
     int n1 = str1->size;
@@ -112,7 +121,7 @@ int string_compare(const void* str1v, const void* str2v)
 {
     String* str1 = (String*) str1v;
     String* str2 = (String*) str2v;
-    if(str1 == NULL && str2 == NULL)
+    if(str1 == NULL && str2 == NULL || (str1->data == NULL && str2->data == NULL)) 
         return 0;
     if(str1 == NULL || str2 == NULL || str1->data == NULL || str2->data == NULL)
         return 1;
@@ -142,6 +151,12 @@ status_code string_copy(String_ptr from_res, String_ptr to_res)
     {
         return INVALID_PARAMETER; 
     }
+    if(from_res->data == NULL)
+    {
+        to.size = 0;
+        to.data = NULL;
+        *to_res = to;
+    }
     to.size = from_res->size;
     to.data = (char*) malloc(sizeof(char) * (to.size +1));
     if(!to.data)
@@ -151,6 +166,7 @@ status_code string_copy(String_ptr from_res, String_ptr to_res)
         to.data[i] = from_res->data[i];
     }
     to.data[to.size] = '\0';
+    *to_res = to;
     return OK;
 }
 
@@ -468,9 +484,13 @@ status_code str_to_d(String_ptr in, double* out, int base)
 //[begin;end)
 status_code sub_string(String_ptr source, int begin, int end, String_ptr result)
 {
+    if(source == NULL || source->data == NULL)
+        return INVALID_PARAMETER;
     if(begin < 0 || end > source->size)
         return INVALID_PARAMETER;
     char* data = (char*) malloc(sizeof(char) * (end - begin + 1));
+    if(!data)
+        return ALLOC_ERROR;
     for(int i = begin; i < end; i++)
     {
         data[i - begin] = source->data[i];
@@ -510,106 +530,32 @@ bool check_mail_id(String_ptr str)
     return true;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //#include "my_lib.h"
 typedef unsigned long long ull;
 
 typedef struct Address
 {
-    String city;
-    String street;
+    String city;//need to destroy
+    String street;//need to destroy
     unsigned int house_number;
-    String korpus;
+    String korpus;//need to destroy
     unsigned int flat_number;
-    String index;
+    String index;//need to destroy
 } Address, *Address_ptr;
 
 typedef struct Mail
 {
     Address address;
     double weight;
-    String mail_id;
-    String time_created;
-    String time_received;
+    String mail_id;//need to destroy
+    String time_created;//need to destroy
+    String time_received;//need to destroy
 } Mail, *Mail_ptr;
 
 typedef struct Mail_Arr
 {
-    Mail* data;
-    int* was_sent;
+    Mail* data;//need to free
+    int* was_sent;//need to free
     int size;
     int max_size;
 } Mail_Arr, *Mail_Arr_ptr;
@@ -619,6 +565,22 @@ typedef struct Post
     Address post_address;
     Mail_Arr mails;
 } Post, *Post_ptr;
+
+
+
+status_code post_create(Post_ptr result)
+{
+    Post post;
+    post.mails.size = 0;
+    post.mails.max_size = 2;
+    post.mails.data = (Mail*) calloc(2, sizeof(Mail));
+    if(!post.mails.data)
+    {
+        return ALLOC_ERROR;
+    }
+    *result = post;
+    return OK;
+}
 
 void print_mail(Mail_ptr ptr)
 {
@@ -653,19 +615,7 @@ status_code time_to_string(struct tm *time, String_ptr res) {
     return OK;
 }
 
-status_code post_create(Post_ptr result)
-{
-    Post post;
-    post.mails.size = 0;
-    post.mails.max_size = 2;
-    post.mails.data = (Mail*) calloc(2, sizeof(Mail));
-    if(!post.mails.data)
-    {
-        return ALLOC_ERROR;
-    }
-    *result = post;
-    return OK;
-}
+
 
 void free_address(Address* ad)
 {
@@ -723,10 +673,8 @@ void free_all(int count, ...)
         void* obj = va_arg(argptr, void*);
         free(obj);
     }
-
     va_end(argptr);
 }
-
 //--------------------------------------------------------------------------------
 int mail_cmp(const void* am, const void* bm)
 {

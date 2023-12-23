@@ -246,10 +246,9 @@ status_code str_to_int(char** in, int* out, int base)
 //--------------------------------------------------------------------------------
 //Just some more
 
-// TODO: shitty shit
-void student_free(Student stud)
+void student_free(Student* stud)
 {
-    free(stud.marks);
+    free(stud->marks);
 }
 
 void student_list_free(Student* list, int count)
@@ -257,7 +256,7 @@ void student_list_free(Student* list, int count)
     if(list == NULL)
         return;
     for(int i = 0; i < count; i++)
-        student_free(list[i]);
+        student_free(&(list[i]));
     free(list);
 }
 

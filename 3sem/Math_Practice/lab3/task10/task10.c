@@ -259,6 +259,7 @@ void free_tree(Node* root)
         free_tree(root->brother);
     free(root);
 }
+
 int main(int argc, char** argv)
 {
     status_code code = OK;

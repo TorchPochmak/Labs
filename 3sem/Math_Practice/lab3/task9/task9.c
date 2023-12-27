@@ -350,9 +350,8 @@ void usage()
 
 void unknown()
 {
-    printf("\nTry again...\n");
+    printf("Commands params are wrong. Please read usage...\n");
 }
-
 
 status_code dialogue(Node** root)
 {
@@ -365,7 +364,7 @@ status_code dialogue(Node** root)
         if(res != 1 || !(cmd >= 1 && cmd <= 7))
         {
             unknown();
-            continue;
+            break;
         }
         if(cmd == 1)
         {
@@ -418,7 +417,6 @@ status_code dialogue(Node** root)
             if(res != 1 || num <= 0)
             {
                 printf("N should be greater than 0");
-                unknown();
                 continue;
             }
             print_most_quantity(*root, num);
@@ -461,8 +459,8 @@ status_code dialogue(Node** root)
 
 int main(int argc, char** argv)
 {
-    argc = 2;
-    argv[1] = "temp";
+    // argc = 2;
+    // argv[1] = "df";
     if(argc != 2)
     {
         printf("use: <input_file>\n");

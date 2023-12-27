@@ -124,7 +124,7 @@ status_code read_string(char** res)
 //--------------------------------------------------------------------------------
 //Just some more
 
-status_code check_flags(int argc, char** argv)
+status_code check_flags(int argc, char** argv, bool* asc)
 {
     if(argc != 4)
         return INPUT_ERROR;
@@ -132,7 +132,13 @@ status_code check_flags(int argc, char** argv)
     ok = ok && argv[2][1] == 'a' || argv[2][1] == 'd';
     ok = ok && (strlen(argv[2]) == 2);
     if(ok)
+    {
+        if(argv[2][1] == 'a')
+            *asc = true;
+        else
+            *asc = false;
         return OK;
+    }
     else 
         return INPUT_ERROR;
 }
@@ -264,17 +270,17 @@ void print_empllist(FILE* file, Employee* list, int cnt)
 
 
 const char usage[] = "<in_file_path> -<flag> <out_file_path>\n";
-const char help[] = "Commands:\n2) sort_asc sort_dsc\n";
 
 int main(int argc, char** argv)
 {
-    printf(help);
-    argc = 4;
-    argv[1] = "in1.txt";
-    argv[2] = "-d";
-    argv[3] = "out1.txt";
+    
+    // argc = 4;
+    // argv[1] = "in1.txt";
+    // argv[2] = "-d";
+    // argv[3] = "out1.txt";
     if(argc != 4)
     {
+        printf(usage);
         show_error(INPUT_ERROR);
         return INPUT_ERROR;
     }
@@ -284,7 +290,8 @@ int main(int argc, char** argv)
         return INPUT_ERROR;
     }
     status_code error = OK;
-    error = check_flags(argc, argv);
+    bool asc = true;
+    error = check_flags(argc, argv, &asc);
     error = EPS > 0 ? error : INVALID_PARAMETER;
     if(error)
         return error;
@@ -307,47 +314,30 @@ int main(int argc, char** argv)
         fclose_all(2, in, out);
         return error;
     }
-    char* buf = NULL;
-    if((error = read_string(&buf)) != OK)
-    {
-        show_error(error);
-        free_all(2, buf, list);
-        fclose_all(2, in, out);
-        return error;
-    }
     //SORTING
-    else if(!strcmp(buf, "sort_asc"))
+    else if(asc)
     {   
         qsort(list, list_count, sizeof(Employee), cmp_asc);
         print_empllist(out, list, list_count);
         printf("Employees are sorted and printed\n");
-        free_all(2, buf, list);
-        fclose_all(2, in, out);
-        return error;
-    }
-    else if(!strcmp(buf, "sort_dsc"))
-    {   
-        qsort(list, list_count, sizeof(Employee), cmp_dsc);
-        print_empllist(out, list, list_count);
-        printf("Employees are sorted and printed\n");
-        free_all(2, buf, list);
+        free_all(1, list);
         fclose_all(2, in, out);
         return error;
     }
     else
-    {
-        printf("Unknown command\n");
+    {   
+        qsort(list, list_count, sizeof(Employee), cmp_dsc);
+        print_empllist(out, list, list_count);
+        printf("Employees are sorted and printed\n");
+        free_all(1, list);
         fclose_all(2, in, out);
-        free(buf);
-        free(list);
-        return OK;
+        return error;
     }
     if(error)
     {
         show_error(error);
     }
     fclose_all(2, in, out);
-    free(buf);
     free(list);
     return error;  
 }

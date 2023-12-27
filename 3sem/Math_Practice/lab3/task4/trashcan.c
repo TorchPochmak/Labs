@@ -73,61 +73,9 @@ void getA(A* result)
 }
 int main()
 {
-    A okay;
-    getA(&okay);
-    int g = okay.id;
-
-
-
-    int i = 2;
-    char* res = (char*) malloc(sizeof(char) * 3);
-    res[0] = 'g';
-    res[1] = 'h';
-    res[2] = '\0';
-    printf("%s\n", res);
-    foo1(res);
-    printf("%s\n", res);
+    char* a = NULL;
+    printf("%d", strlen(a));
     printf("\n");
-    //
-    res = "foo2 before";
-    printf("%s\n", res);
-    foo2(&res);
-    printf("%s\n", res);
-    printf("\n");
-    //
-    res = "foo3 before";
-    printf("%s\n", res);
-    foo3(&res);
-    printf("%s\n", res);
-    printf("\n");
-    //
-    res = "foo4 before";
-    printf("%s\n", res);
-    foo4(&res);
-    printf("%s\n", res);
-    printf("\n");
-    //
-    res = "foo5 before";
-    printf("%s\n", res);
-    foo5(&res);
-    printf("%s\n", res);
-    printf("\n");
-    //
-    res = "foo6 before";
-    printf("%s\n", res);
-    foo6(&res);
-    //printf("%d", strlen(res));
-    printf("%s\n", res);
-    printf("\n");
-    //
-    res = "foo6 before with ints";
-    int* a = (int*) calloc(3, sizeof(int));
-    printf("%d\n", a[1]);
-    foo7(&a);
-    printf("%d\n", a[1]);
-    printf("\n");
-
-    int f = strcmp("", "");
 }
 
 

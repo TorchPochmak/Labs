@@ -534,9 +534,9 @@ status_code fread_line(FILE* file, char** res)
 
 int main(int argc, char * argv[])
 {
-    argc = 3;
-    argv[1] = "f1";
-    argv[2] = "f2";
+    // argc = 3;
+    // argv[1] = "f1";
+    // argv[2] = "f2";
     if(argc == 1)
     {
         printf("Write paths to files\n");

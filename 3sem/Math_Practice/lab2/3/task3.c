@@ -186,7 +186,6 @@ status_code solve_files(char* substr, int** result_cnt, substr_found*** subs, in
 }
 
 
-
 int main(int argc, char** argv)
 {
     

@@ -563,11 +563,11 @@ int main()
     if(!f)
         return FILE_ERROR;
     char buff[256];
-    int count;
+    int count = 10000000;
 
     printf("\t\tTest 1\n");
     fprintf(f, "\n\tTest 1\n");
-    count = oversprintf(buff, "%Ro", 3888);
+    count = oversprintf(buff, "\\\\%Ro", 3888);
     printf("str: '%s' count:%d\n\n", buff, count);
     count = overfprintf(f, "%Ro", 3888);
 
@@ -680,5 +680,7 @@ int main()
     count = oversprintf(buff, "over %TO", "-7b", -1);
     printf("str: '%s' count:%d\n\n", buff, count);
     count = overfprintf(f, "over %TO", "-7b", -1);
+    
+    count = oversprintf(buff, "%");
     return 0;
 }

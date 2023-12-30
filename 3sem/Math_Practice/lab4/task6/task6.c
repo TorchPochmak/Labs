@@ -158,7 +158,7 @@ bool are_neighb_valid(token a, token b)
         return false;
     if((is_binary_operation(a) || a == INV) && (b == RIGHTSK))
         return false;
-    if(a == LEFTSK && (is_binary_operation(b) || b == INV))
+    if(a == LEFTSK && (is_binary_operation(b)))
         return false;
     if((is_binary_operation(a) || a == INV) && (is_binary_operation(b)))
         return false;

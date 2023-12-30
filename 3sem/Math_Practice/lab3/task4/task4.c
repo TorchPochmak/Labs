@@ -833,7 +833,8 @@ status_code remove_mail(Mail_Arr_ptr arr, int index)
     {
         arr->data[i] = arr->data[i + 1];
     }
-    free_mail(&(arr->data[arr->size]));
+    if(arr->size != arr->max_size)
+        free_mail(&(arr->data[arr->size]));
     arr->size -= 1;
     return OK;
 }

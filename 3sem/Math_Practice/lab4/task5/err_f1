@@ -9,12 +9,18 @@ ERROR: Invalid brackets
 ERROR: Invalid brackets
  in 7
 ERROR: Extra operand or operator
+ in 8
+ERROR: Extra operand or operator
  in 9
-ERROR: Overflow
+ERROR: Extra operand or operator
  in 10
 ERROR: Overflow
  in 11
-ERROR: Extra operand or operator
+ERROR: Overflow
  in 12
 ERROR: Extra operand or operator
  in 13
+ERROR: Input error
+ in 15
+ERROR: Invalid brackets
+ in 16

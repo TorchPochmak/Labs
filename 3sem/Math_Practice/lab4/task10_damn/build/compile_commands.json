@@ -1,0 +1,42 @@
+[
+{
+  "directory": "/home/katana/Documents/inter/build",
+  "command": "/usr/bin/cc   -g -o CMakeFiles/main.dir/main.c.o -c /home/katana/Documents/inter/main.c",
+  "file": "/home/katana/Documents/inter/main.c"
+},
+{
+  "directory": "/home/katana/Documents/inter/build",
+  "command": "/usr/bin/cc   -g -o CMakeFiles/main.dir/operation_syntax.c.o -c /home/katana/Documents/inter/operation_syntax.c",
+  "file": "/home/katana/Documents/inter/operation_syntax.c"
+},
+{
+  "directory": "/home/katana/Documents/inter/build",
+  "command": "/usr/bin/cc   -g -o CMakeFiles/main.dir/operation_type.c.o -c /home/katana/Documents/inter/operation_type.c",
+  "file": "/home/katana/Documents/inter/operation_type.c"
+},
+{
+  "directory": "/home/katana/Documents/inter/build",
+  "command": "/usr/bin/cc   -g -o CMakeFiles/main.dir/errors.c.o -c /home/katana/Documents/inter/errors.c",
+  "file": "/home/katana/Documents/inter/errors.c"
+},
+{
+  "directory": "/home/katana/Documents/inter/build",
+  "command": "/usr/bin/cc   -g -o CMakeFiles/main.dir/interpreter.c.o -c /home/katana/Documents/inter/interpreter.c",
+  "file": "/home/katana/Documents/inter/interpreter.c"
+},
+{
+  "directory": "/home/katana/Documents/inter/build",
+  "command": "/usr/bin/cc   -g -o CMakeFiles/main.dir/Trie.c.o -c /home/katana/Documents/inter/Trie.c",
+  "file": "/home/katana/Documents/inter/Trie.c"
+},
+{
+  "directory": "/home/katana/Documents/inter/build",
+  "command": "/usr/bin/cc   -g -o CMakeFiles/main.dir/settings_work.c.o -c /home/katana/Documents/inter/settings_work.c",
+  "file": "/home/katana/Documents/inter/settings_work.c"
+},
+{
+  "directory": "/home/katana/Documents/inter/build",
+  "command": "/usr/bin/cc   -g -o CMakeFiles/main.dir/debug.c.o -c /home/katana/Documents/inter/debug.c",
+  "file": "/home/katana/Documents/inter/debug.c"
+}
+]

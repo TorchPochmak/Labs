@@ -1,0 +1,3 @@
+/home/katana/Documents/inter/build/CMakeFiles/main.dir
+/home/katana/Documents/inter/build/CMakeFiles/edit_cache.dir
+/home/katana/Documents/inter/build/CMakeFiles/rebuild_cache.dir
